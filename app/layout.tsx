@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VettCode - AI-Power At your finger tips',
-  description: 'Upload your VettCode scan results and get AI-powered security explanations',
-  keywords: ['security', 'code analysis', 'vulnerability scanner', 'AI', 'developer tools'],
+  title: 'VettCode - Build. Secure. Ship.',
+  description: 'One ecosystem for turning ideas into real software. From your first prompt to production, VettCode gives you the tools to create, code, test, secure, and deploy applications.',
+  keywords: ['VettCode', 'AI development', 'security analysis', 'code deployment', 'developer tools', 'application building', 'code security', 'web hosting', 'AI coding agent'],
 }
 
 export default function RootLayout({
