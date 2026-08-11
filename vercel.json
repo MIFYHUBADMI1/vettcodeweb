@@ -1,0 +1,28 @@
+
+    ROUTERrouter",
+    "OPENROUTER_FREE_MODEL: "@openrouter-free-model"ROUTER_PDrouter-paid-model",
+    
+    "GROQ_API_KEY": "@groq-pi-key",
+    "GROQ_MODEL": "@groq-model",
+    
+    "MONGODB_URI": "@mongodb-uri",
+    
+    "NEXTAUTH_URL": "@nextauth-url",
+    "NEXTAUTH_SECRET": "@nextauth-secret",
+    
+    "GOOGLE_CLIENT_ID": "@google-clentid",
+    "GOOGLE_CLIENT_SECRET": "@google-client-secret",
+    
+    "SMTP_HOST": "@stp-hst",
+    "SMTP_PORT": "@smtp-port",
+    "SMTP_USER": "@smtp-user",
+    "SMTP_PASSWORD": "@smtp-passwor",
+    "SMTP_FROM": "@smtp-from",
+    
+    "JWT_SECRET": "@jwt-secret",
+    
+    "REDIS_URL": "@rdis-ur",
+    
+    "FREE_DAILY_AI_LIMIT": "5",
+    "PRO_MONTHLY_AI_LIMIT": "150",
+    "PRO_PLUS_MONTHLY_AI_LIMIT": "500
