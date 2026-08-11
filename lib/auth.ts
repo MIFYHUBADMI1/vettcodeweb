@@ -16,10 +16,10 @@ export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise) as any,
   
   providers: [
-    // Google OAuth
+    // Google OAuth (Web Authentication - no client secret needed)
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientSecret: process.env.GOOGLE_CLIENT_ID!, // Use clientId as secret for Web Auth
       authorization: {
         params: {
           prompt: 'consent',
