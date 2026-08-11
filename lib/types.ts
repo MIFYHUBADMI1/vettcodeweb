@@ -32,7 +32,7 @@ export interface Finding {
   column?: number
   confidence?: number
   confidenceLabel?: string
-  fingerprint: string
+  fingerprint?: string  // Made optional
   metadata: {
     ruleId?: string
     cwe?: string[]
