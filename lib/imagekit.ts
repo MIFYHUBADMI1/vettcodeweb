@@ -5,18 +5,37 @@
 
 import ImageKit from 'imagekit'
 
-// Initialize ImageKit client
-const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || '',
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
-})
+let imagekitInstance: ImageKit | null = null
+
+/**
+ * Get or initialize ImageKit client
+ */
+function getImageKit(): ImageKit {
+  if (!imagekitInstance) {
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY
+    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT
+    
+    if (!publicKey || !privateKey || !urlEndpoint) {
+      throw new Error('ImageKit credentials not configured. Please set IMAGEKIT_PUBLIC_KEY, IMAGEKIT_PRIVATE_KEY, and IMAGEKIT_URL_ENDPOINT environment variables.')
+    }
+    
+    imagekitInstance = new ImageKit({
+      publicKey,
+      privateKey,
+      urlEndpoint,
+    })
+  }
+  
+  return imagekitInstance
+}
 
 /**
  * Upload scan result JSON to ImageKit
  */
 export async function uploadScanResult(jsonData: any): Promise<string> {
   try {
+    const imagekit = getImageKit()
     const fileName = `scan-${Date.now()}.json`
     const fileContent = JSON.stringify(jsonData, null, 2)
     
@@ -55,6 +74,7 @@ export async function getScanResult(url: string): Promise<any> {
  */
 export async function listScans(limit: number = 20): Promise<any[]> {
   try {
+    const imagekit = getImageKit()
     const result = await imagekit.listFiles({
       path: '/vettcode-scans',
       limit: limit,
@@ -73,6 +93,7 @@ export async function listScans(limit: number = 20): Promise<any[]> {
  */
 export async function deleteScan(fileId: string): Promise<boolean> {
   try {
+    const imagekit = getImageKit()
     await imagekit.deleteFile(fileId)
     return true
   } catch (error) {
@@ -81,4 +102,4 @@ export async function deleteScan(fileId: string): Promise<boolean> {
   }
 }
 
-export default imagekit
+export default getImageKit
