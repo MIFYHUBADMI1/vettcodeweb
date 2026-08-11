@@ -34,7 +34,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await UserModel.findByEmail(email)
+    let existingUser
+    try {
+      existingUser = await UserModel.findByEmail(email)
+    } catch (dbError: any) {
+      console.error('Database error checking existing user:', dbError)
+      return NextResponse.json(
+        { error: 'Database connection error. Please try again later.' },
+        { status: 500 }
+      )
+    }
+
     if (existingUser) {
       return NextResponse.json(
         { error: 'User with this email already exists' },
@@ -49,20 +59,44 @@ export async function POST(request: NextRequest) {
     const verificationToken = crypto.randomBytes(32).toString('hex')
 
     // Create user
-    const user = await UserModel.create({
-      email,
-      name,
-      password: hashedPassword,
-      plan: 'free',
-      provider: 'credentials',
-    })
+    let user
+    try {
+      user = await UserModel.create({
+        email,
+        name,
+        password: hashedPassword,
+        plan: 'free',
+        provider: 'credentials',
+      })
+    } catch (createError: any) {
+      console.error('Error creating user:', createError)
+      return NextResponse.json(
+        { error: 'Failed to create user account. Please try again.' },
+        { status: 500 }
+      )
+    }
 
     // Set verification token
-    await UserModel.setVerificationToken(user._id!.toString(), verificationToken, 24)
+    try {
+      await UserModel.setVerificationToken(user._id!.toString(), verificationToken, 24)
+    } catch (tokenError: any) {
+      console.error('Error setting verification token:', tokenError)
+      // Continue anyway - user is created, they can request a new verification email
+    }
 
     // Send verification email
-    const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify?token=${verificationToken}`
-    await sendVerificationEmail(email, verificationUrl)
+    try {
+      const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify?token=${verificationToken}`
+      await sendVerificationEmail(email, verificationUrl)
+    } catch (emailError: any) {
+      console.error('Error sending verification email:', emailError)
+      // Return success but note email issue
+      return NextResponse.json({
+        success: true,
+        message: 'Account created! However, we had trouble sending the verification email. Please use the "Resend" option.',
+        userId: user._id!.toString(),
+      })
+    }
 
     return NextResponse.json({
       success: true,
@@ -72,7 +106,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Registration error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to create account' },
+      { error: error.message || 'Failed to create account. Please try again.' },
       { status: 500 }
     )
   }
