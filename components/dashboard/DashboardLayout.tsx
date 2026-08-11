@@ -52,8 +52,8 @@ const navigation: NavItem[] = [
   { label: 'Web Host', href: '/dashboard/host', icon: Globe, comingSoon: true },
   
   // ACCOUNT
-  { label: 'Usage & Plans', href: '/dashboard/usage', icon: CreditCard, section: 'ACCOUNT', comingSoon: true },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings, comingSoon: true },
+  { label: 'Profile', href: '/dashboard/profile', icon: Settings, section: 'ACCOUNT' },
+  { label: 'Usage & Plans', href: '/dashboard/usage', icon: CreditCard, comingSoon: true },
 ]
 
 const SIDEBAR_STORAGE_KEY = 'vettcode-sidebar-collapsed'
@@ -303,7 +303,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     Account
                   </div>
                 )}
-                {navigation.slice(7).map((item) => renderNavItem(item, sidebarCollapsed))}
+                {navigation.slice(7, 9).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
             </div>
           </nav>
@@ -636,7 +636,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
                       Account
                     </div>
-                    {navigation.slice(7).map((item) => {
+                    {navigation.slice(7, 9).map((item) => {
                       const isActive = isRouteActive(item.href)
                       const Icon = item.icon
 
