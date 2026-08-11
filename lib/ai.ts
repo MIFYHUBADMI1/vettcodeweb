@@ -45,7 +45,7 @@ export async function generateAIExplanation(
     // Quota exceeded - return template-only result
     const result = await aiRouter.generateExplanation(finding, {
       userId,
-      plan: { ...plan, allowedProviders: [] }, // Force template-only
+      plan: { ...plan, allowedModelTiers: [] }, // Force template-only by blocking all model tiers
       feature: 'finding_explanation',
     })
 
