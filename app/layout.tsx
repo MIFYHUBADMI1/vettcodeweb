@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'VettCode Dashboard - AI-Powered Security Analysis',
+  title: 'VettCode - AI-Power At your finger tips',
   description: 'Upload your VettCode scan results and get AI-powered security explanations',
   keywords: ['security', 'code analysis', 'vulnerability scanner', 'AI', 'developer tools'],
 }
