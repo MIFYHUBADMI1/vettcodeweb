@@ -39,13 +39,12 @@ export default function Home() {
                 Sign In
               </Link>
               <Link 
-                href="/start" 
+                href="/signup" 
                 className="px-6 py-2 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 rounded-lg font-semibold transition"
               >
                 Start Building
               </Link>
-            </div>
-          </div>
+            </div>          </div>
         </div>
       </nav>
 
