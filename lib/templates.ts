@@ -206,3 +206,101 @@ npm audit fix`,
     whatYouLearn: 'Dead packages are security risks. Stick with actively maintained libraries.',
   },
 }
+
+/**
+ * Get template by exact rule ID match
+ */
+export function getTemplate(ruleId: string): Explanation | null {
+  const normalized = ruleId.toLowerCase().replace(/[_-]/g, '-')
+  return templates[normalized] || null
+}
+
+/**
+ * Get template by context/pattern matching
+ */
+export function getTemplateByContext(
+  ruleId: string,
+  message: string,
+  category: string
+): Explanation | null {
+  const searchText = `${ruleId} ${message}`.toLowerCase()
+
+  // SQL Injection patterns
+  if (
+    searchText.includes('sql') &&
+    (searchText.includes('injection') || searchText.includes('query'))
+  ) {
+    return templates['sql-injection']
+  }
+
+  // Command Injection patterns
+  if (
+    searchText.includes('command') &&
+    (searchText.includes('injection') || searchText.includes('exec'))
+  ) {
+    return templates['command-injection']
+  }
+
+  // XSS patterns
+  if (
+    searchText.includes('xss') ||
+    (searchText.includes('cross') && searchText.includes('site')) ||
+    searchText.includes('script')
+  ) {
+    return templates['xss']
+  }
+
+  // Secret patterns
+  if (category === 'SECRET' || searchText.includes('secret') || searchText.includes('credential')) {
+    if (searchText.includes('aws')) return templates['aws-secret']
+    if (searchText.includes('github')) return templates['github-token']
+    if (searchText.includes('key')) return templates['api-key']
+    if (searchText.includes('private')) return templates['private-key']
+    return templates['hardcoded-secret']
+  }
+
+  // Path Traversal
+  if (searchText.includes('path') && searchText.includes('traversal')) {
+    return templates['path-traversal']
+  }
+
+  // Weak Crypto
+  if (
+    (searchText.includes('md5') || searchText.includes('sha1')) &&
+    searchText.includes('hash')
+  ) {
+    return templates['weak-hash']
+  }
+
+  // Insecure Random
+  if (searchText.includes('random') && searchText.includes('math')) {
+    return templates['insecure-random']
+  }
+
+  // eval injection
+  if (searchText.includes('eval')) {
+    return templates['eval-injection']
+  }
+
+  // Dependency issues
+  if (category === 'DEPENDENCY') {
+    if (searchText.includes('deprecated')) return templates['deprecated-package']
+    return templates['vulnerable-dependency']
+  }
+
+  return null
+}
+
+/**
+ * Get all available template IDs
+ */
+export function getTemplateIds(): string[] {
+  return Object.keys(templates)
+}
+
+/**
+ * Check if a template exists
+ */
+export function hasTemplate(ruleId: string): boolean {
+  return getTemplate(ruleId) !== null
+}
