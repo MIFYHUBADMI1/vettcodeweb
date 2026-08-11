@@ -45,7 +45,7 @@ const navigation: NavItem[] = [
   { label: 'Vibe CLI', href: '/dashboard/vibe-cli', icon: Terminal, comingSoon: true },
   
   // SECURE
-  { label: 'Security', href: '/dashboard/security', icon: Shield, section: 'SECURE', comingSoon: true },
+  { label: 'Security Scans', href: '/dashboard/scans', icon: Shield, section: 'SECURE' },
   
   // SHIP
   { label: 'Deployments', href: '/dashboard/deployments', icon: Rocket, section: 'SHIP', comingSoon: true },
