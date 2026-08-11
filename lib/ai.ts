@@ -32,7 +32,7 @@ export async function generateAIExplanation(
   }
 }> {
   // Get user's plan
-  const plan = getUserPlan(userId)
+  const plan = await getUserPlan(userId)
 
   // Check if user can make AI request (quota enforcement)
   const quotaCheck = await checkQuota(
