@@ -17,7 +17,9 @@ import {
   Menu,
   X,
   ChevronDown,
-  LogOut
+  LogOut,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -54,14 +56,34 @@ const navigation: NavItem[] = [
   { label: 'Settings', href: '/dashboard/settings', icon: Settings, comingSoon: true },
 ]
 
+const SIDEBAR_STORAGE_KEY = 'vettcode-sidebar-collapsed'
+
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const { data: session } = useSession()
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
+
+  // Load sidebar state from localStorage after mount
+  useEffect(() => {
+    setMounted(true)
+    const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY)
+    if (saved !== null) {
+      setSidebarCollapsed(saved === 'true')
+    }
+  }, [])
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarCollapsed))
+    }
+  }, [sidebarCollapsed, mounted])
 
   // Check if a route is active (handles nested routes)
   const isRouteActive = (href: string) => {
@@ -135,6 +157,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setTimeout(() => menuButtonRef.current?.focus(), 100)
   }
 
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed)
+  }
+
   const getUserInitials = (name: string | null | undefined) => {
     if (!name) return 'U'
     return name
@@ -145,303 +171,214 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       .slice(0, 2)
   }
 
+  // Render navigation item
+  const renderNavItem = (item: NavItem, isCollapsed: boolean) => {
+    const isActive = isRouteActive(item.href)
+    const Icon = item.icon
+
+    if (item.comingSoon) {
+      return (
+        <div 
+          key={item.href}
+          className={clsx(
+            'flex items-center rounded-lg cursor-not-allowed opacity-50 text-gray-500',
+            isCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2.5'
+          )}
+          title={isCollapsed ? `${item.label} (Coming soon)` : item.label}
+        >
+          <div className={clsx('flex items-center', isCollapsed ? '' : 'gap-3')}>
+            <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+            {!isCollapsed && <span className="truncate text-sm">{item.label}</span>}
+          </div>
+          {!isCollapsed && (
+            <span className="text-[10px] text-gray-600 font-medium px-1.5 py-0.5 bg-gray-800 rounded uppercase tracking-wider">
+              Soon
+            </span>
+          )}
+        </div>
+      )
+    }
+
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={clsx(
+          'flex items-center rounded-lg transition-all group relative',
+          isCollapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
+          isActive
+            ? 'bg-purple-600/10 text-purple-400 font-medium border-l-2 border-purple-500'
+            : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-2 border-transparent',
+          isCollapsed && isActive && 'pl-[6px]',
+          isCollapsed && !isActive && 'pl-[8px]',
+          !isCollapsed && 'pl-[10px]'
+        )}
+        aria-current={isActive ? 'page' : undefined}
+        title={isCollapsed ? item.label : undefined}
+      >
+        <Icon className={clsx(
+          'w-5 h-5 flex-shrink-0 transition-transform',
+          isActive && 'text-purple-400',
+          !isActive && 'group-hover:scale-110'
+        )} aria-hidden="true" />
+        {!isCollapsed && <span className="truncate text-sm">{item.label}</span>}
+        <span className="sr-only">{item.label}</span>
+      </Link>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:w-64 lg:flex-col">
+      <aside className={clsx(
+        'hidden lg:fixed lg:inset-y-0 lg:z-40 lg:flex lg:flex-col transition-all duration-200',
+        sidebarCollapsed ? 'lg:w-[72px]' : 'lg:w-64'
+      )}>
         <div className="flex min-h-0 flex-1 flex-col bg-gray-900 border-r border-gray-800">
           {/* Logo */}
-          <div className="flex h-16 shrink-0 items-center px-6 border-b border-gray-800">
+          <div className={clsx(
+            'flex h-16 shrink-0 items-center border-b border-gray-800 transition-all duration-200',
+            sidebarCollapsed ? 'justify-center px-2' : 'px-6'
+          )}>
             <Link 
               href="/dashboard" 
-              className="text-xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+              className="font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+              title={sidebarCollapsed ? 'VettCode' : undefined}
             >
-              VettCode
+              {sidebarCollapsed ? (
+                <span className="text-2xl">V</span>
+              ) : (
+                <span className="text-xl">VettCode</span>
+              )}
             </Link>
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-6 px-3" aria-label="Dashboard navigation">
-            <div className="space-y-1">
+            <div className={clsx('space-y-1', sidebarCollapsed && 'space-y-2')}>
               {/* WORKSPACE Section */}
               <div className="mb-6">
-                <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
-                  Workspace
-                </div>
-                {navigation.slice(0, 2).map((item) => {
-                  const isActive = isRouteActive(item.href)
-                  const Icon = item.icon
-
-                  return (
-                    <div key={item.href}>
-                      {item.comingSoon ? (
-                        <div 
-                          className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
-                          title={`${item.label} coming soon`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                            <span className="truncate">{item.label}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-600 font-medium px-1.5 py-0.5 bg-gray-800 rounded uppercase tracking-wider">
-                            Soon
-                          </span>
-                        </div>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={clsx(
-                            'flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group relative',
-                            isActive
-                              ? 'bg-purple-600/10 text-purple-400 font-medium border-l-2 border-purple-500 pl-[10px]'
-                              : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-2 border-transparent pl-[10px]'
-                          )}
-                          aria-current={isActive ? 'page' : undefined}
-                        >
-                          <Icon className={clsx(
-                            'w-5 h-5 flex-shrink-0 transition-transform',
-                            isActive && 'text-purple-400',
-                            !isActive && 'group-hover:scale-110'
-                          )} aria-hidden="true" />
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      )}
-                    </div>
-                  )
-                })}
+                {!sidebarCollapsed && (
+                  <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
+                    Workspace
+                  </div>
+                )}
+                {navigation.slice(0, 2).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
 
               {/* BUILD Section */}
               <div className="mb-6">
-                <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
-                  Build
-                </div>
-                {navigation.slice(2, 4).map((item) => {
-                  const isActive = isRouteActive(item.href)
-                  const Icon = item.icon
-
-                  return (
-                    <div key={item.href}>
-                      {item.comingSoon ? (
-                        <div 
-                          className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
-                          title={`${item.label} coming soon`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                            <span className="truncate">{item.label}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-600 font-medium px-1.5 py-0.5 bg-gray-800 rounded uppercase tracking-wider">
-                            Soon
-                          </span>
-                        </div>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={clsx(
-                            'flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group relative',
-                            isActive
-                              ? 'bg-purple-600/10 text-purple-400 font-medium border-l-2 border-purple-500 pl-[10px]'
-                              : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-2 border-transparent pl-[10px]'
-                          )}
-                          aria-current={isActive ? 'page' : undefined}
-                        >
-                          <Icon className={clsx(
-                            'w-5 h-5 flex-shrink-0 transition-transform',
-                            isActive && 'text-purple-400',
-                            !isActive && 'group-hover:scale-110'
-                          )} aria-hidden="true" />
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      )}
-                    </div>
-                  )
-                })}
+                {!sidebarCollapsed && (
+                  <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
+                    Build
+                  </div>
+                )}
+                {navigation.slice(2, 4).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
 
               {/* SECURE Section */}
               <div className="mb-6">
-                <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
-                  Secure
-                </div>
-                {navigation.slice(4, 5).map((item) => {
-                  const isActive = isRouteActive(item.href)
-                  const Icon = item.icon
-
-                  return (
-                    <div key={item.href}>
-                      {item.comingSoon ? (
-                        <div 
-                          className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
-                          title={`${item.label} coming soon`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                            <span className="truncate">{item.label}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-600 font-medium px-1.5 py-0.5 bg-gray-800 rounded uppercase tracking-wider">
-                            Soon
-                          </span>
-                        </div>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={clsx(
-                            'flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group relative',
-                            isActive
-                              ? 'bg-purple-600/10 text-purple-400 font-medium border-l-2 border-purple-500 pl-[10px]'
-                              : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-2 border-transparent pl-[10px]'
-                          )}
-                          aria-current={isActive ? 'page' : undefined}
-                        >
-                          <Icon className={clsx(
-                            'w-5 h-5 flex-shrink-0 transition-transform',
-                            isActive && 'text-purple-400',
-                            !isActive && 'group-hover:scale-110'
-                          )} aria-hidden="true" />
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      )}
-                    </div>
-                  )
-                })}
+                {!sidebarCollapsed && (
+                  <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
+                    Secure
+                  </div>
+                )}
+                {navigation.slice(4, 5).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
 
               {/* SHIP Section */}
               <div className="mb-6">
-                <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
-                  Ship
-                </div>
-                {navigation.slice(5, 7).map((item) => {
-                  const isActive = isRouteActive(item.href)
-                  const Icon = item.icon
-
-                  return (
-                    <div key={item.href}>
-                      {item.comingSoon ? (
-                        <div 
-                          className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
-                          title={`${item.label} coming soon`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                            <span className="truncate">{item.label}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-600 font-medium px-1.5 py-0.5 bg-gray-800 rounded uppercase tracking-wider">
-                            Soon
-                          </span>
-                        </div>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={clsx(
-                            'flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group relative',
-                            isActive
-                              ? 'bg-purple-600/10 text-purple-400 font-medium border-l-2 border-purple-500 pl-[10px]'
-                              : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-2 border-transparent pl-[10px]'
-                          )}
-                          aria-current={isActive ? 'page' : undefined}
-                        >
-                          <Icon className={clsx(
-                            'w-5 h-5 flex-shrink-0 transition-transform',
-                            isActive && 'text-purple-400',
-                            !isActive && 'group-hover:scale-110'
-                          )} aria-hidden="true" />
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      )}
-                    </div>
-                  )
-                })}
+                {!sidebarCollapsed && (
+                  <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
+                    Ship
+                  </div>
+                )}
+                {navigation.slice(5, 7).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
 
               {/* ACCOUNT Section */}
               <div>
-                <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
-                  Account
-                </div>
-                {navigation.slice(7).map((item) => {
-                  const isActive = isRouteActive(item.href)
-                  const Icon = item.icon
-
-                  return (
-                    <div key={item.href}>
-                      {item.comingSoon ? (
-                        <div 
-                          className="flex items-center justify-between px-3 py-2.5 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
-                          title={`${item.label} coming soon`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                            <span className="truncate">{item.label}</span>
-                          </div>
-                          <span className="text-[10px] text-gray-600 font-medium px-1.5 py-0.5 bg-gray-800 rounded uppercase tracking-wider">
-                            Soon
-                          </span>
-                        </div>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={clsx(
-                            'flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group relative',
-                            isActive
-                              ? 'bg-purple-600/10 text-purple-400 font-medium border-l-2 border-purple-500 pl-[10px]'
-                              : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-2 border-transparent pl-[10px]'
-                          )}
-                          aria-current={isActive ? 'page' : undefined}
-                        >
-                          <Icon className={clsx(
-                            'w-5 h-5 flex-shrink-0 transition-transform',
-                            isActive && 'text-purple-400',
-                            !isActive && 'group-hover:scale-110'
-                          )} aria-hidden="true" />
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      )}
-                    </div>
-                  )
-                })}
+                {!sidebarCollapsed && (
+                  <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
+                    Account
+                  </div>
+                )}
+                {navigation.slice(7).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
             </div>
           </nav>
 
-          {/* User Profile */}
+          {/* User Profile & Collapse Button */}
           {session && (
-            <div className="border-t border-gray-800 p-4" ref={userMenuRef}>
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="w-full flex items-center gap-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-800 transition-colors relative focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
-                aria-expanded={userMenuOpen}
-                aria-haspopup="true"
-              >
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-green-500 flex items-center justify-center font-semibold text-sm flex-shrink-0">
-                  {getUserInitials(session.user.name)}
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <div className="font-medium text-white truncate">
-                    {session.user.name || 'User'}
+            <div className="border-t border-gray-800 p-4 space-y-3">
+              {/* User Profile */}
+              <div ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className={clsx(
+                    'w-full flex items-center text-sm rounded-lg hover:bg-gray-800 transition-colors relative focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900',
+                    sidebarCollapsed ? 'justify-center px-2 py-2' : 'gap-3 px-3 py-2'
+                  )}
+                  aria-expanded={userMenuOpen}
+                  aria-haspopup="true"
+                  title={sidebarCollapsed ? session.user.name || 'User menu' : undefined}
+                >
+                  <div className={clsx(
+                    'rounded-full bg-gradient-to-br from-purple-500 to-green-500 flex items-center justify-center font-semibold text-sm flex-shrink-0',
+                    sidebarCollapsed ? 'w-9 h-9' : 'w-9 h-9'
+                  )}>
+                    {getUserInitials(session.user.name)}
                   </div>
-                  <div className="text-xs text-gray-400 truncate">
-                    {session.user.email}
-                  </div>
-                </div>
-                <ChevronDown className={clsx(
-                  'w-4 h-4 text-gray-400 transition-transform flex-shrink-0',
-                  userMenuOpen && 'rotate-180'
-                )} aria-hidden="true" />
-              </button>
+                  {!sidebarCollapsed && (
+                    <>
+                      <div className="flex-1 text-left min-w-0">
+                        <div className="font-medium text-white truncate">
+                          {session.user.name || 'User'}
+                        </div>
+                        <div className="text-xs text-gray-400 truncate">
+                          {session.user.email}
+                        </div>
+                      </div>
+                      <ChevronDown className={clsx(
+                        'w-4 h-4 text-gray-400 transition-transform flex-shrink-0',
+                        userMenuOpen && 'rotate-180'
+                      )} aria-hidden="true" />
+                    </>
+                  )}
+                </button>
 
-              {userMenuOpen && (
-                <div className="mt-2 py-1 bg-gray-800 rounded-lg border border-gray-700 shadow-lg">
-                  <button
-                    onClick={handleSignOut}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none focus:bg-gray-700"
-                  >
-                    <LogOut className="w-4 h-4" aria-hidden="true" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              )}
+                {userMenuOpen && !sidebarCollapsed && (
+                  <div className="mt-2 py-1 bg-gray-800 rounded-lg border border-gray-700 shadow-lg">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none focus:bg-gray-700"
+                    >
+                      <LogOut className="w-4 h-4" aria-hidden="true" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Collapse/Expand Button */}
+              <button
+                onClick={toggleSidebar}
+                className={clsx(
+                  'w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900',
+                  sidebarCollapsed && 'justify-center px-2'
+                )}
+                aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              >
+                {sidebarCollapsed ? (
+                  <ChevronRight className="w-5 h-5" aria-hidden="true" />
+                ) : (
+                  <>
+                    <ChevronLeft className="w-5 h-5" aria-hidden="true" />
+                    <span className="text-xs">Collapse</span>
+                  </>
+                )}
+              </button>
             </div>
           )}
         </div>
@@ -774,7 +711,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className="lg:pl-64">
+      <main className={clsx(
+        'transition-all duration-200',
+        sidebarCollapsed ? 'lg:pl-[72px]' : 'lg:pl-64'
+      )}>
         <div className="py-8 lg:py-10 px-4 sm:px-6 lg:px-8 mt-16 lg:mt-0">
           {children}
         </div>
