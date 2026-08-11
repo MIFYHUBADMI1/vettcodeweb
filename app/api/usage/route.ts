@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUsageAnalytics } from '@/lib/usage-tracking'
 import { getUserPlan } from '@/lib/subscription'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // In production, get from auth session

@@ -1,11 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import AuthLayout from '@/components/auth/AuthLayout'
 import { AlertCircle } from 'lucide-react'
 
-export default function AuthErrorPage() {
+function ErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -37,33 +38,48 @@ export default function AuthErrorPage() {
   }
 
   return (
-    <AuthLayout>
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
-        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <AlertCircle className="w-8 h-8 text-red-400" />
-        </div>
-        
-        <h1 className="text-2xl font-bold mb-4 text-white">Something went wrong</h1>
-        
-        <p className="text-gray-400 mb-8">
-          {getErrorMessage(error)}
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="/signin"
-            className="px-8 py-3 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white font-semibold rounded-lg transition"
-          >
-            Try Again
-          </Link>
-          <Link
-            href="/"
-            className="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
-          >
-            Back to VettCode
-          </Link>
-        </div>
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+      <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+        <AlertCircle className="w-8 h-8 text-red-400" />
       </div>
+      
+      <h1 className="text-2xl font-bold mb-4 text-white">Something went wrong</h1>
+      
+      <p className="text-gray-400 mb-8">
+        {getErrorMessage(error)}
+      </p>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Link
+          href="/signin"
+          className="px-8 py-3 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white font-semibold rounded-lg transition"
+        >
+          Try Again
+        </Link>
+        <Link
+          href="/"
+          className="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
+        >
+          Back to VettCode
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+export default function AuthErrorPage() {
+  return (
+    <AuthLayout>
+      <Suspense fallback={
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+          <div className="w-16 h-16 bg-gray-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-8 h-8 text-gray-400 animate-pulse" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Loading...</h1>
+        </div>
+      }>
+        <ErrorContent />
+      </Suspense>
     </AuthLayout>
   )
 }

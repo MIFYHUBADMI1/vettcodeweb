@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { listScans } from '@/lib/imagekit'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const scans = await listScans(20)
