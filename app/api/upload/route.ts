@@ -115,6 +115,8 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Upload API error:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Error details:', JSON.stringify(error, null, 2))
     
     // Return appropriate error based on type
     if (error.message.includes('Authentication')) {
@@ -126,7 +128,7 @@ export async function POST(request: NextRequest) {
     
     if (error.message.includes('ImageKit')) {
       return NextResponse.json(
-        { error: 'Failed to store scan result' },
+        { error: 'Failed to store scan result: ' + error.message },
         { status: 500 }
       )
     }
