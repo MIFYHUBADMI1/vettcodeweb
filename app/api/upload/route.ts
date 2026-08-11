@@ -65,10 +65,14 @@ function sanitizeScanResult(scanResult: ScanResult): ScanResult {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[UPLOAD API] Starting upload process...')
+    
     // Authenticate CLI
     const auth = await authenticateCLIRequest(request)
+    console.log('[UPLOAD API] Auth result:', { authenticated: auth.authenticated, userId: auth.userId })
 
     if (!auth.authenticated) {
+      console.log('[UPLOAD API] Authentication failed:', auth.error)
       return NextResponse.json(
         { error: auth.error || 'Authentication required' },
         { status: 401 }
@@ -76,9 +80,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('[UPLOAD API] Received body keys:', Object.keys(body))
+    console.log('[UPLOAD API] Body structure:', {
+      hasVersion: !!body.version,
+      hasScan: !!body.scan,
+      hasFindings: !!body.findings,
+      hasSummary: !!body.summary,
+      findingsCount: body.findings?.length
+    })
 
     // Validate scan result format
     if (!body || !body.version || !body.scan || !body.findings) {
+      console.log('[UPLOAD API] Invalid format - missing required fields')
       return NextResponse.json(
         { error: 'Invalid scan result format' },
         { status: 400 }
@@ -87,7 +100,9 @@ export async function POST(request: NextRequest) {
 
     // Validate scan result size (max 10MB)
     const bodySize = JSON.stringify(body).length
+    console.log('[UPLOAD API] Body size:', bodySize, 'bytes')
     if (bodySize > 10 * 1024 * 1024) {
+      console.log('[UPLOAD API] Body too large')
       return NextResponse.json(
         { error: 'Scan result too large (max 10MB)' },
         { status: 413 }
@@ -95,17 +110,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Sanitize sensitive data
+    console.log('[UPLOAD API] Sanitizing scan result...')
     const sanitizedResult: ScanResult = sanitizeScanResult(body)
+    console.log('[UPLOAD API] Sanitization complete')
 
     // Upload to ImageKit
+    console.log('[UPLOAD API] Uploading to ImageKit...')
     const imagekitUrl = await uploadScanResult(sanitizedResult)
+    console.log('[UPLOAD API] ImageKit upload success:', imagekitUrl)
 
     // Store in database
+    console.log('[UPLOAD API] Storing in database...')
     const scan = await ScanModel.create(
       auth.userId!,
       sanitizedResult,
       imagekitUrl
     )
+    console.log('[UPLOAD API] Database insert success, scanId:', scan._id?.toString())
 
     return NextResponse.json({
       success: true,
