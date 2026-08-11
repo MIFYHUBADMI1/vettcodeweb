@@ -13,6 +13,7 @@ import { SubscriptionPlan } from './subscription'
 import { AIProviderRegistry, AIProvider } from './ai-providers'
 import { getTemplate, getTemplateByContext } from './templates'
 import { trackAIUsage } from './usage-tracking'
+import { AIModel } from './model-registry'
 
 export interface AIRouterOptions {
   userId: string
@@ -200,8 +201,8 @@ export class AIRouter {
     
     // Add fallback models (other capable models from allowed tiers)
     const fallbackModels = allowedModels
-      .filter((m) => m.id !== bestModel.id && m.capabilities.includes('explanation'))
-      .sort((a, b) => {
+      .filter((m: AIModel) => m.id !== bestModel.id && m.capabilities.includes('explanation'))
+      .sort((a: AIModel, b: AIModel) => {
         // Sort by tier (descending) then cost (ascending)
         if (b.tier !== a.tier) return b.tier - a.tier
         const aCost = a.costPerInputToken + a.costPerOutputToken
@@ -210,7 +211,7 @@ export class AIRouter {
       })
       .slice(0, 3) // Max 3 fallbacks
     
-    fallbackModels.forEach((model, index) => {
+    fallbackModels.forEach((model: AIModel, index: number) => {
       const provider = this.registry.getProvider(model.provider)
       if (provider) {
         result.push({
