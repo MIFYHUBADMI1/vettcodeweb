@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const analytics = await getUsageAnalytics(userId)
     
     // Get user's plan
-    const plan = getUserPlan(userId)
+    const plan = await getUserPlan(userId)
 
     return NextResponse.json({
       plan: {
