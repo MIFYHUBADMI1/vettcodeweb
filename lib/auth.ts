@@ -98,8 +98,8 @@ export const authOptions: NextAuthOptions = {
           // Create new user with Google OAuth
           dbUser = await UserModel.create({
             email: user.email!,
-            name: user.name,
-            image: user.image,
+            name: user.name || undefined,
+            image: user.image || undefined,
             plan: 'free',
             emailVerified: new Date(), // Google emails are pre-verified
             provider: 'google',
