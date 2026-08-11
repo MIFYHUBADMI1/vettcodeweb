@@ -86,6 +86,15 @@ export async function POST(request: NextRequest) {
 
     // Send verification email
     try {
+      if (!process.env.NEXTAUTH_URL) {
+        console.error('NEXTAUTH_URL is not set')
+        return NextResponse.json({
+          success: true,
+          message: 'Account created! However, verification email could not be sent. Please contact support.',
+          userId: user._id!.toString(),
+        })
+      }
+      
       const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify?token=${verificationToken}`
       await sendVerificationEmail(email, verificationUrl)
     } catch (emailError: any) {
