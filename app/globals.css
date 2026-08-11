@@ -84,3 +84,22 @@ code {
 .code-block .string {
   color: #ce9178;
 }
+
+/* Landing Page Enhancements */
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Backdrop blur support */
+@supports (backdrop-filter: blur(0)) {
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+  }
+}
