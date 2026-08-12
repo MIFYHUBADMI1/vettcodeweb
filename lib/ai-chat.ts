@@ -1,10 +1,12 @@
 /**
  * AI Chat System - Scan-Aware Conversational AI
  * Extends existing AI system for multi-turn conversations
+ * SERVER-SIDE ONLY - Do not import in client components
  */
 
 import { AIRouter } from './ai-router'
 import type { Finding } from './types'
+import type { ScanContext } from './ai-chat-utils'
 
 const aiRouter = new AIRouter()
 
@@ -12,21 +14,6 @@ export interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
   timestamp?: Date
-}
-
-export interface ScanContext {
-  scanId: string
-  scanPath: string
-  totalFindings: number
-  criticalCount: number
-  highCount: number
-  mediumCount: number
-  lowCount: number
-  infoCount: number
-  score: number
-  grade: string
-  categories: string[]
-  priorityFindings: Finding[]
 }
 
 export interface ChatResponse {
@@ -389,53 +376,4 @@ function formatExplanationAsMessage(explanation: any): string {
  */
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4)
-}
-
-/**
- * Generate dynamic quick actions based on scan
- */
-export function generateQuickActions(context: ScanContext): string[] {
-  const actions: string[] = []
-
-  // Always include these
-  actions.push('What should I fix first?')
-
-  if (context.criticalCount > 0) {
-    actions.push('Explain my critical issues')
-  }
-
-  // Check for specific categories
-  const hasSecrets = context.categories.includes('SECRET')
-  const hasCode = context.categories.includes('CODE')
-  const hasDependency = context.categories.includes('DEPENDENCY')
-
-  if (hasSecrets) {
-    actions.push('Teach me about exposed secrets')
-  }
-
-  // Check for SQL injection in priority findings
-  const hasSQLi = context.priorityFindings.some(
-    (f) =>
-      f.title.toLowerCase().includes('sql') ||
-      f.message.toLowerCase().includes('sql') ||
-      f.metadata.ruleId?.toLowerCase().includes('sql')
-  )
-
-  if (hasSQLi) {
-    actions.push('Explain SQL injection to me')
-  }
-
-  if (hasCode && context.highCount > 0) {
-    actions.push('Why are these code issues dangerous?')
-  }
-
-  if (hasDependency) {
-    actions.push('Help me understand dependency risks')
-  }
-
-  // Always offer these
-  actions.push('Create a fix plan for me')
-  actions.push('What can I learn from this scan?')
-
-  return actions.slice(0, 6) // Max 6 quick actions
 }

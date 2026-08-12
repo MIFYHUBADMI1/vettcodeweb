@@ -11,9 +11,15 @@ import { authOptions } from '@/lib/auth'
 import { ScanModel } from '@/lib/models/Scan'
 import { generateChatResponse, generateScanOverview } from '@/lib/ai-chat'
 import { calculateSecurityScore } from '@/lib/security-score'
-import type { ChatMessage, ScanContext } from '@/lib/ai-chat'
+import type { ScanContext } from '@/lib/ai-chat-utils'
 
 export const dynamic = 'force-dynamic'
+
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp?: Date
+}
 
 interface ChatRequest {
   message: string

@@ -14,7 +14,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import { useScan } from '@/lib/hooks/useScans'
-import { generateQuickActions } from '@/lib/ai-chat'
+import { generateQuickActions } from '@/lib/ai-chat-utils'
 import { calculateSecurityScore } from '@/lib/security-score'
 import { 
   Sparkles, 
@@ -29,9 +29,14 @@ import {
   MessageSquare,
   AlertTriangle
 } from 'lucide-react'
-import type { ChatMessage } from '@/lib/ai-chat'
 
-export default function AICoachnPage() {
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp?: Date
+}
+
+export default function AICoachPage() {
   const { data: session } = useSession()
   const params = useParams()
   const router = useRouter()
