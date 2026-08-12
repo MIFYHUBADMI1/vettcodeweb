@@ -55,7 +55,7 @@ export default function VettCodeSummary({
     }
 
     if (criticalCount > 0 || highCount > 5) {
-      return 'You don't need to fix everything at once. Start with the priority findings below — they're the most important.'
+      return 'You don\'t need to fix everything at once. Start with the priority findings below — they\'re the most important.'
     }
 
     return 'Review the priority findings below to understand what needs attention. Focus on fixing one issue at a time.'
