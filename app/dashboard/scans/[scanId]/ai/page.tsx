@@ -29,7 +29,8 @@ import {
   Copy,
   Check,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Zap
 } from 'lucide-react'
 
 interface ChatMessage {
@@ -55,6 +56,7 @@ export default function AICoachPage() {
   const [hasLoadedOverview, setHasLoadedOverview] = useState(false)
   const [contextCollapsed, setContextCollapsed] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const [showQuickActions, setShowQuickActions] = useState(false)
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -348,7 +350,7 @@ export default function AICoachPage() {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto">
               {messages.length === 0 && !isGenerating ? (
-                /* Empty State */
+                /* Empty State - Show quick actions by default */
                 <div className="h-full flex items-center justify-center p-6">
                   <div className="max-w-2xl w-full space-y-6">
                     <div className="text-center space-y-2">
@@ -361,7 +363,7 @@ export default function AICoachPage() {
                       </p>
                     </div>
 
-                    {/* Quick Start Actions */}
+                    {/* Quick Start Actions - Always shown in empty state */}
                     <div className="space-y-2">
                       <p className="text-xs text-gray-500 uppercase tracking-wide text-center">Quick Start</p>
                       <div className="flex flex-wrap gap-2 justify-center">
@@ -485,6 +487,37 @@ export default function AICoachPage() {
                   <p className="text-xs text-yellow-400">
                     Daily AI limit reached. Upgrade for more requests or wait until tomorrow!
                   </p>
+                </div>
+              )}
+
+              {/* Quick Actions Toggle - Only show when conversation started */}
+              {messages.length > 0 && !isGenerating && (
+                <div className="mb-3">
+                  <button
+                    onClick={() => setShowQuickActions(!showQuickActions)}
+                    className="flex items-center gap-2 text-xs text-gray-400 hover:text-purple-400 transition-colors"
+                  >
+                    <Zap className="w-3 h-3" />
+                    <span>{showQuickActions ? 'Hide' : 'Show'} quick actions</span>
+                  </button>
+                  
+                  {showQuickActions && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {quickActions.map((action, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            sendMessage(action)
+                            setShowQuickActions(false)
+                          }}
+                          disabled={isGenerating}
+                          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {action}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
