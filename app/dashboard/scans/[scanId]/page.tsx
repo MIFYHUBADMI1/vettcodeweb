@@ -22,7 +22,8 @@ import {
   Shield, 
   Clock,
   AlertCircle,
-  ChevronLeft
+  ChevronLeft,
+  Sparkles
 } from 'lucide-react'
 import type { Finding } from '@/lib/types'
 
@@ -73,11 +74,21 @@ export default function ScanDetailPage() {
 
           {/* Refresh Button */}
           {!isLoading && scan && (
-            <RefreshButton 
-              onRefresh={refetch}
-              isRefreshing={isFetching}
-              lastUpdated={new Date(dataUpdatedAt)}
-            />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.push(`/dashboard/scans/${scanId}/ai`)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors font-medium"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>AI Overview</span>
+              </button>
+              
+              <RefreshButton 
+                onRefresh={refetch}
+                isRefreshing={isFetching}
+                lastUpdated={new Date(dataUpdatedAt)}
+              />
+            </div>
           )}
         </div>
 
