@@ -19,11 +19,15 @@ export type SecurityStatus =
   | 'HIGH_RISK' 
   | 'CRITICAL_RISK'
 
+export type SecurityGrade = 'A' | 'B' | 'C' | 'D' | 'F'
+
 export interface SecurityScore {
-  score: number // 0-100
+  score: number // 5-100 (never 0 to avoid confusion)
+  grade: SecurityGrade
   status: SecurityStatus
   description: string
   emoji: string
+  reason: string // Why this score?
 }
 
 /**
@@ -32,48 +36,69 @@ export interface SecurityScore {
 export function calculateSecurityScore(scan: ScanSummary): SecurityScore {
   let score = 100
 
-  // Deduct points by severity
-  score -= scan.criticalCount * 15
-  score -= scan.highCount * 8
-  score -= scan.mediumCount * 3
-  score -= scan.lowCount * 1
-  score -= scan.infoCount * 0.5
+  // Deduct points by severity (less harsh than before)
+  score -= scan.criticalCount * 12
+  score -= scan.highCount * 6
+  score -= scan.mediumCount * 2
+  score -= scan.lowCount * 0.5
+  score -= scan.infoCount * 0.2
 
-  // Ensure score is between 0-100
-  score = Math.max(0, Math.min(100, Math.round(score)))
+  // Ensure score is between 5-100 (never 0 to avoid looking like an error)
+  score = Math.max(5, Math.min(100, Math.round(score)))
 
-  // Determine status based on findings
+  // Calculate grade
+  let grade: SecurityGrade
+  if (score >= 90) grade = 'A'
+  else if (score >= 75) grade = 'B'
+  else if (score >= 60) grade = 'C'
+  else if (score >= 40) grade = 'D'
+  else grade = 'F'
+
+  // Determine status and reason based on findings
   let status: SecurityStatus
   let description: string
   let emoji: string
+  let reason: string
 
   if (scan.criticalCount > 0) {
     status = 'CRITICAL_RISK'
     emoji = '🔴'
     description = 'Critical security issues detected. Address these immediately to protect your application.'
+    reason = `Score reduced due to ${scan.criticalCount} critical ${scan.criticalCount === 1 ? 'issue' : 'issues'} (-12 pts each)${scan.highCount > 0 ? ` and ${scan.highCount} high severity ${scan.highCount === 1 ? 'issue' : 'issues'} (-6 pts each)` : ''}.`
   } else if (scan.highCount > 5) {
     status = 'HIGH_RISK'
     emoji = '🟠'
     description = 'Multiple high-severity issues found. These should be fixed as soon as possible.'
+    reason = `Score reduced due to ${scan.highCount} high severity issues (-6 pts each)${scan.mediumCount > 0 ? ` and ${scan.mediumCount} medium severity issues (-2 pts each)` : ''}.`
   } else if (scan.highCount > 0 || scan.mediumCount > 5) {
     status = 'NEEDS_ATTENTION'
     emoji = '🟡'
     description = 'Some security issues need attention. Review and fix these to improve your security.'
+    reason = `Score reduced due to ${scan.highCount > 0 ? `${scan.highCount} high severity` : ''} ${scan.mediumCount > 0 ? `${scan.mediumCount} medium severity` : ''} issues found.`
   } else if (scan.mediumCount > 0 || scan.lowCount > 0) {
     status = 'GOOD'
     emoji = '🟢'
     description = 'Your code is relatively secure. A few minor issues to address when you have time.'
-  } else {
+    reason = `Minor issues detected: ${scan.mediumCount} medium (-2 pts each), ${scan.lowCount} low (-0.5 pts each). Good overall security posture.`
+  } else if (scan.infoCount > 0) {
     status = 'SECURE'
     emoji = '✅'
     description = 'Excellent! No significant security issues detected in your code.'
+    reason = `Only ${scan.infoCount} informational ${scan.infoCount === 1 ? 'note' : 'notes'} found (-0.2 pts each). Strong security!`
+  } else {
+    status = 'SECURE'
+    emoji = '✅'
+    description = 'Perfect! No security issues found in this scan.'
+    reason = 'Zero security issues detected. Your code is secure!'
   }
 
   return {
     score,
+    grade,
     status,
     description,
     emoji,
+    reason,
   }
 }
 

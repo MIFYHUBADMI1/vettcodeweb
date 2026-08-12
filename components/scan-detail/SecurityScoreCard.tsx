@@ -25,7 +25,7 @@ export default function SecurityScoreCard({
   infoCount,
   totalFindings,
 }: SecurityScoreCardProps) {
-  const { score, status, description, emoji } = calculateSecurityScore({
+  const { score, grade, status, description, emoji, reason } = calculateSecurityScore({
     criticalCount,
     highCount,
     mediumCount,
@@ -57,7 +57,10 @@ export default function SecurityScoreCard({
       <div className="grid md:grid-cols-2 gap-6 mb-6">
         {/* Left: Score */}
         <div className="flex flex-col items-center justify-center p-6 bg-gray-900/50 rounded-xl border border-gray-700">
-          <div className="text-6xl font-bold text-white mb-2">{score}</div>
+          <div className="flex items-baseline gap-3 mb-2">
+            <div className="text-6xl font-bold text-white">{score}</div>
+            <div className="text-4xl font-bold text-purple-400">{grade}</div>
+          </div>
           <div className="text-sm text-gray-400 mb-1">out of 100</div>
           <div className="flex items-center gap-2 mt-2">
             <TrendIcon className="w-4 h-4 text-gray-400" />
@@ -75,6 +78,14 @@ export default function SecurityScoreCard({
           </div>
           <p className="text-sm text-gray-300 leading-relaxed">{description}</p>
         </div>
+      </div>
+
+      {/* Score Reason/Explanation */}
+      <div className="mb-6 p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+        <p className="text-sm text-gray-300">
+          <span className="font-semibold text-blue-400">📊 How this score was calculated:</span>
+          {' '}{reason}
+        </p>
       </div>
 
       {/* Severity Breakdown */}
