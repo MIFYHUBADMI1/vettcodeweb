@@ -110,6 +110,7 @@ export default function AICoachPage() {
       }
     } catch (err) {
       console.error('Failed to load overview:', err)
+      // Don't show error, let user start conversation manually
     } finally {
       setIsGenerating(false)
     }
@@ -565,38 +566,40 @@ export default function AICoachPage() {
 
               {/* Input Composer */}
               <div className="px-4 md:px-6 py-4">
-                <div className="max-w-3xl mx-auto relative">
-                  <textarea
-                    ref={textareaRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Ask VettCode about this scan..."
-                    disabled={isGenerating || quotaExceeded}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    rows={1}
-                    style={{ minHeight: '44px', maxHeight: '160px' }}
-                  />
+                <div className="max-w-3xl mx-auto">
+                  <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-[28px] border border-gray-700 hover:border-gray-600 focus-within:border-purple-500/50 transition-all shadow-lg">
+                    <textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask VettCode about this scan..."
+                      disabled={isGenerating || quotaExceeded}
+                      className="w-full bg-transparent px-5 py-3.5 pr-14 text-sm text-white placeholder-gray-500 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      rows={1}
+                      style={{ minHeight: '52px', maxHeight: '160px' }}
+                    />
+                    
+                    {/* Send Button */}
+                    <button
+                      onClick={() => sendMessage()}
+                      disabled={!input.trim() || isGenerating || quotaExceeded}
+                      className="absolute right-2 bottom-2 p-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-purple-600 shadow-md hover:shadow-lg disabled:shadow-none"
+                      title="Send message (Enter)"
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
                   
-                  {/* Send Button */}
-                  <button
-                    onClick={() => sendMessage()}
-                    disabled={!input.trim() || isGenerating || quotaExceeded}
-                    className="absolute right-2 bottom-2 p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-purple-600 group"
-                    title="Send message (Enter)"
-                  >
-                    {isGenerating ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </button>
+                  {/* Help Text */}
+                  <p className="text-[10px] text-gray-500 text-center mt-3">
+                    Press Enter to send • Shift+Enter for new line
+                  </p>
                 </div>
-                
-                {/* Help Text */}
-                <p className="text-[10px] text-gray-600 text-center mt-2 max-w-3xl mx-auto">
-                  Press Enter to send • Shift+Enter for new line
-                </p>
               </div>
             </div>
           </>
