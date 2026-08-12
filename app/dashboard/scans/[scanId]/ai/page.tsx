@@ -404,7 +404,7 @@ export default function AICoachPage() {
                 </div>
               ) : (
                 /* Conversation Messages - Centered max-width */
-                <div className="w-full max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
+                <div className="w-full max-w-3xl mx-auto px-4 md:px-6 py-6 pb-8 space-y-6">
                   {messages.map((msg, idx) => (
                     <div key={idx}>
                       {msg.role === 'assistant' ? (
@@ -526,11 +526,11 @@ export default function AICoachPage() {
               )}
             </div>
 
-            {/* Composer Area - Fixed at bottom */}
-            <div className="flex-shrink-0 border-t border-gray-800 bg-gray-900/80 backdrop-blur-sm">
+            {/* Composer Area - Fixed at bottom with clear separation */}
+            <div className="flex-shrink-0 border-t border-gray-700 bg-gradient-to-t from-gray-900 to-gray-900/95 backdrop-blur-md shadow-2xl">
               {/* Quota Warning */}
               {quotaExceeded && (
-                <div className="px-4 md:px-6 py-2">
+                <div className="px-4 md:px-6 pt-3 pb-2">
                   <div className="max-w-3xl mx-auto p-2.5 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                     <p className="text-xs text-yellow-400">
                       Daily AI limit reached. Upgrade for more requests or wait until tomorrow.
@@ -540,7 +540,7 @@ export default function AICoachPage() {
               )}
 
               {/* Input Composer - Compact at bottom */}
-              <div className="px-4 md:px-6 py-2.5">
+              <div className="px-4 md:px-6 py-4">
                 <div className="max-w-3xl mx-auto">
                   {/* Suggested Actions Panel - Expands UPWARD when open */}
                   {messages.length > 0 && quickActions.length > 0 && !isGenerating && (
