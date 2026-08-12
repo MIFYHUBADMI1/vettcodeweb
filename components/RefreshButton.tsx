@@ -8,7 +8,7 @@
 import { RefreshCw } from 'lucide-react'
 
 interface RefreshButtonProps {
-  onRefresh: () => void | Promise<void> | Promise<any>
+  onRefresh: () => void | Promise<any>
   isRefreshing: boolean
   lastUpdated?: Date
 }
