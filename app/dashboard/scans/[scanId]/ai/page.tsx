@@ -26,7 +26,8 @@ import {
   Copy,
   Check,
   ChevronDown,
-  Menu
+  Menu,
+  Zap
 } from 'lucide-react'
 
 interface ChatMessage {
