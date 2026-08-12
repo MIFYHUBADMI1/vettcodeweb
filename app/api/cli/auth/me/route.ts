@@ -10,6 +10,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authenticateCLIRequest } from '@/lib/cli-auth'
 import { UserModel } from '@/lib/models/User'
 
+// Mark as dynamic route (not statically renderable)
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Authenticate CLI request

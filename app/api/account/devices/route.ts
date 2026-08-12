@@ -10,6 +10,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { CLICredentialModel } from '@/lib/models/CLICredential'
 
+// Mark as dynamic route (not statically renderable)
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     // Get authenticated session
