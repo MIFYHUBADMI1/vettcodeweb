@@ -34,13 +34,16 @@ export async function generateScanOverview(
   userId: string
 ): Promise<ChatResponse> {
   const startTime = Date.now()
+  console.log('[AI-CHAT] Generating scan overview for user:', userId)
   
   // Dynamic imports for server-only modules
   const { getUserPlan } = await import('./subscription')
-  const { checkQuota, trackAIUsage } = await import('./usage-tracking')
+  const { checkQuota } = await import('./usage-tracking')
   
   // Check quota
   const plan = await getUserPlan(userId)
+  console.log('[AI-CHAT] User plan:', plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
+  
   const quotaCheck = await checkQuota(
     userId,
     plan.dailyAIRequestLimit,
@@ -48,6 +51,7 @@ export async function generateScanOverview(
   )
 
   if (!quotaCheck.allowed) {
+    console.log('[AI-CHAT] Quota exceeded, using template fallback. Reason:', quotaCheck.reason)
     return {
       message: generateTemplateOverview(scanContext),
       source: 'template',
@@ -59,6 +63,7 @@ export async function generateScanOverview(
 
   // Build prompt
   const prompt = buildScanOverviewPrompt(scanContext)
+  console.log('[AI-CHAT] Built overview prompt, calling AI...')
 
   try {
     // Use AI Router (existing infrastructure)
@@ -69,12 +74,13 @@ export async function generateScanOverview(
       'scan_overview'
     )
 
+    console.log('[AI-CHAT] Overview generated successfully via', response.provider, response.model)
     return {
       ...response,
       duration: Date.now() - startTime,
     }
   } catch (error) {
-    console.error('Scan overview generation failed:', error)
+    console.error('[AI-CHAT] Scan overview generation failed:', error)
     
     // Fallback to template
     return {
@@ -95,6 +101,9 @@ export async function generateChatResponse(
   userId: string
 ): Promise<ChatResponse> {
   const startTime = Date.now()
+  console.log('[AI-CHAT] Generating chat response for user:', userId)
+  console.log('[AI-CHAT] User message:', userMessage.substring(0, 100))
+  console.log('[AI-CHAT] Conversation history length:', conversationHistory.length)
 
   // Dynamic imports for server-only modules
   const { getUserPlan } = await import('./subscription')
@@ -102,6 +111,8 @@ export async function generateChatResponse(
 
   // Check quota
   const plan = await getUserPlan(userId)
+  console.log('[AI-CHAT] User plan:', plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
+  
   const quotaCheck = await checkQuota(
     userId,
     plan.dailyAIRequestLimit,
@@ -109,6 +120,7 @@ export async function generateChatResponse(
   )
 
   if (!quotaCheck.allowed) {
+    console.log('[AI-CHAT] Quota exceeded. Reason:', quotaCheck.reason)
     return {
       message: "You've reached your daily AI limit. Your quota resets tomorrow, or upgrade for more requests!",
       source: 'error',
@@ -121,6 +133,9 @@ export async function generateChatResponse(
   // Build context-aware prompt
   const systemPrompt = buildChatSystemPrompt(scanContext)
   const contextualPrompt = buildContextualPrompt(userMessage, scanContext)
+  
+  console.log('[AI-CHAT] System prompt length:', systemPrompt.length)
+  console.log('[AI-CHAT] Contextual prompt:', contextualPrompt.substring(0, 150))
 
   try {
     const response = await callAIChat(
@@ -133,12 +148,15 @@ export async function generateChatResponse(
       'scan_chat'
     )
 
+    console.log('[AI-CHAT] Chat response generated successfully via', response.provider, response.model)
+    console.log('[AI-CHAT] Response length:', response.message.length)
+    
     return {
       ...response,
       duration: Date.now() - startTime,
     }
   } catch (error) {
-    console.error('Chat response generation failed:', error)
+    console.error('[AI-CHAT] Chat response generation failed:', error)
     
     return {
       message: "I'm having trouble responding right now. Please try again in a moment.",
@@ -157,95 +175,47 @@ async function callAIChat(
   userId: string,
   feature: string
 ): Promise<Omit<ChatResponse, 'duration'>> {
+  console.log('[AI-CHAT] callAIChat invoked for feature:', feature)
+  
   // Dynamic imports
   const { getUserPlan } = await import('./subscription')
-  const { trackAIUsage } = await import('./usage-tracking')
-  const { getModelsForPlan, findBestModel } = await import('./model-registry')
-  const { AIProviderRegistry } = await import('./ai-providers')
   
   const plan = await getUserPlan(userId)
+
+  // Build messages array for chat
+  const chatMessages = messages.map((m) => ({
+    role: m.role,
+    content: m.content,
+  }))
+
+  // Add user prompt as latest message
+  chatMessages.push({
+    role: 'user',
+    content: userPrompt,
+  })
   
-  // Get best model for chat
-  const allowedModels = getModelsForPlan(plan.allowedModelTiers)
-  const bestModel = findBestModel(allowedModels, 'explanation', plan.priority >= 3)
-
-  if (!bestModel) {
-    throw new Error('No AI model available')
-  }
-
-  // Get provider
-  const registry = new AIProviderRegistry()
-  const provider = registry.getProvider(bestModel.provider)
-
-  if (!provider) {
-    throw new Error('Provider not available')
-  }
-
-  // Build a simple finding object to use the explanation system
-  // This is a workaround until we have proper chat endpoints
-  const chatFinding = {
-    id: 0,
-    title: 'Security Scan Chat',
-    message: userPrompt,
-    severity: 'INFO' as const,
-    category: 'CODE' as const,
-    file: 'chat',
-    line: 0,
-    metadata: {
-      chatContext: JSON.stringify(messages.slice(-3)), // Last 3 messages for context
-    },
-  }
+  console.log('[AI-CHAT] Total messages being sent to AI:', chatMessages.length)
+  console.log('[AI-CHAT] Calling aiRouter.generateChat...')
 
   try {
-    const response = await provider.generateExplanation(
-      chatFinding,
-      bestModel.id,
-      plan.maxTokensPerRequest
-    )
-
-    // Track usage
-    const inputTokens = estimateTokens(userPrompt + JSON.stringify(messages))
-    const outputTokens = estimateTokens(response.whatsWrong + response.whyItMatters + response.howToFix)
-    const cost = (inputTokens * bestModel.costPerInputToken + outputTokens * bestModel.costPerOutputToken) / 1000000
-
-    await trackAIUsage({
+    const response = await aiRouter.generateChat(chatMessages, {
       userId,
-      plan: plan.id,
-      provider: bestModel.provider,
-      model: bestModel.id,
+      plan,
       feature,
-      inputTokens,
-      outputTokens,
-      estimatedCost: cost,
     })
 
-    // Convert explanation format to conversational chat message
-    let message = ''
+    console.log('[AI-CHAT] AI Router response received')
+    console.log('[AI-CHAT] Provider:', response.provider, 'Model:', response.model)
+    console.log('[AI-CHAT] Message preview:', response.message.substring(0, 100))
     
-    if (response.whatsWrong) {
-      message += response.whatsWrong
-    }
-    
-    if (response.whyItMatters && response.whyItMatters !== response.whatsWrong) {
-      message += '\n\n' + response.whyItMatters
-    }
-    
-    if (response.howToFix && response.howToFix.length > 10) {
-      message += '\n\n### How to fix\n\n' + response.howToFix
-    }
-    
-    if (response.whatToLearn && response.whatToLearn.length > 10) {
-      message += '\n\n### What you'll learn\n\n' + response.whatToLearn
-    }
-
     return {
-      message: message.trim() || 'I can help you understand this scan. What would you like to know?',
+      message: response.message,
       source: 'ai',
-      provider: bestModel.provider,
-      model: bestModel.id,
+      provider: response.provider,
+      model: response.model,
     }
   } catch (error) {
-    console.error('AI provider call failed:', error)
+    console.error('[AI-CHAT] AI chat call failed:', error)
     throw error
   }
 }
@@ -381,11 +351,4 @@ function generateTemplateOverview(context: ScanContext): string {
   overview += `**What you'll learn**: Each issue you fix teaches you how to write more secure code. Focus on understanding why these patterns are risky.`
 
   return overview
-}
-
-/**
- * Estimate tokens (rough approximation)
- */
-function estimateTokens(text: string): number {
-  return Math.ceil(text.length / 4)
 }

@@ -13,6 +13,11 @@ export interface AIProvider {
     model: string,
     maxTokens: number
   ): Promise<Explanation>
+  generateChat(
+    messages: Array<{ role: string; content: string }>,
+    model: string,
+    maxTokens: number
+  ): Promise<string>
   isAvailable(): boolean
   estimateCost(inputTokens: number, outputTokens: number, model: string): number
 }
@@ -77,6 +82,36 @@ export class OpenRouterProvider implements AIProvider {
     const content = data.choices[0].message.content
 
     return this.parseResponse(content)
+  }
+
+  async generateChat(
+    messages: Array<{ role: string; content: string }>,
+    model: string,
+    maxTokens: number
+  ): Promise<string> {
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'https://vettcode.dev',
+        'X-Title': 'VettCode AI Coach',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: maxTokens,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`OpenRouter error: ${response.status} - ${error}`)
+    }
+
+    const data = await response.json()
+    return data.choices[0].message.content
   }
 
   private buildPrompt(finding: Finding): string {
@@ -209,6 +244,34 @@ export class GroqProvider implements AIProvider {
     const content = data.choices[0].message.content
 
     return this.parseResponse(content)
+  }
+
+  async generateChat(
+    messages: Array<{ role: string; content: string }>,
+    model: string,
+    maxTokens: number
+  ): Promise<string> {
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: maxTokens,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Groq error: ${response.status} - ${error}`)
+    }
+
+    const data = await response.json()
+    return data.choices[0].message.content
   }
 
   private buildPrompt(finding: Finding): string {

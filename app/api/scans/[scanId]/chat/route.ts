@@ -31,10 +31,13 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { scanId: string } }
 ) {
+  console.log('[CHAT-API] POST request received for scanId:', params.scanId)
+  
   try {
     // 1. Authentication
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
+      console.log('[CHAT-API] Unauthorized - no session')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -42,11 +45,13 @@ export async function POST(
     }
 
     const userId = session.user.email
+    console.log('[CHAT-API] Authenticated user:', userId)
 
     // 2. Get scan and verify ownership
     const scan = await ScanModel.findById(params.scanId)
     
     if (!scan) {
+      console.log('[CHAT-API] Scan not found:', params.scanId)
       return NextResponse.json(
         { error: 'Scan not found' },
         { status: 404 }
@@ -54,15 +59,22 @@ export async function POST(
     }
 
     if (scan.userId !== session.user.id) {
+      console.log('[CHAT-API] Unauthorized - wrong user. Scan owner:', scan.userId, 'Request user:', session.user.id)
       return NextResponse.json(
         { error: 'Unauthorized - not your scan' },
         { status: 403 }
       )
     }
 
+    console.log('[CHAT-API] Scan verified, findings count:', scan.totalFindings)
+
     // 3. Parse request
     const body: ChatRequest = await request.json()
     const { message, conversationHistory = [], requestOverview = false } = body
+    
+    console.log('[CHAT-API] Request type:', requestOverview ? 'overview' : 'chat')
+    console.log('[CHAT-API] User message:', message?.substring(0, 100))
+    console.log('[CHAT-API] Conversation history length:', conversationHistory.length)
 
     // 4. Build scan context
     const { score, grade } = calculateSecurityScore({
@@ -115,16 +127,19 @@ export async function POST(
 
     if (requestOverview) {
       // Initial scan overview
+      console.log('[CHAT-API] Generating scan overview...')
       response = await generateScanOverview(scanContext, userId)
     } else {
       // Conversational response
       if (!message || message.trim().length === 0) {
+        console.log('[CHAT-API] Error: Empty message')
         return NextResponse.json(
           { error: 'Message is required' },
           { status: 400 }
         )
       }
 
+      console.log('[CHAT-API] Generating chat response...')
       response = await generateChatResponse(
         message,
         scanContext,
@@ -132,6 +147,10 @@ export async function POST(
         userId
       )
     }
+
+    console.log('[CHAT-API] Response generated successfully')
+    console.log('[CHAT-API] Source:', response.source, 'Provider:', response.provider, 'Model:', response.model)
+    console.log('[CHAT-API] Duration:', response.duration, 'ms')
 
     // 6. Return response
     return NextResponse.json({
@@ -146,7 +165,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Chat API error:', error)
+    console.error('[CHAT-API] Error:', error)
     
     return NextResponse.json(
       {

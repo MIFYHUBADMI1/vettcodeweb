@@ -357,6 +357,99 @@ export class AIRouter {
   }
 
   /**
+   * Generate chat response (conversational)
+   */
+  async generateChat(
+    messages: Array<{ role: string; content: string }>,
+    options: AIRouterOptions
+  ): Promise<AIRouterResult & { message: string }> {
+    const startTime = Date.now()
+    const { plan } = options
+    
+    console.log('[AI-ROUTER] generateChat called for user:', options.userId)
+    console.log('[AI-ROUTER] Feature:', options.feature, 'Plan:', plan.id)
+
+    // Get available providers
+    const availableProviders = this.getAvailableProviders(plan)
+    
+    console.log('[AI-ROUTER] Available providers:', availableProviders.length)
+    availableProviders.forEach(({ provider, model }) => {
+      console.log('[AI-ROUTER]   -', provider.name, '/', model)
+    })
+
+    if (availableProviders.length === 0) {
+      console.error('[AI-ROUTER] No AI providers available!')
+      throw new Error('No AI providers available')
+    }
+
+    // Try providers in priority order
+    let lastError: Error | null = null
+
+    for (const { provider, model } of availableProviders) {
+      try {
+        console.log('[AI-ROUTER] Trying provider:', provider.name, 'with model:', model)
+        const message = await provider.generateChat(messages, model, plan.maxTokensPerRequest)
+
+        console.log('[AI-ROUTER] Success! Response received from', provider.name)
+        console.log('[AI-ROUTER] Response length:', message.length, 'characters')
+
+        // Estimate cost and track usage
+        const inputTokens = this.estimateChatInputTokens(messages)
+        const outputTokens = this.estimateChatOutputTokens(message)
+        const estimatedCost = provider.estimateCost(inputTokens, outputTokens, model)
+
+        console.log('[AI-ROUTER] Tokens - Input:', inputTokens, 'Output:', outputTokens, 'Cost: $' + estimatedCost.toFixed(6))
+
+        // Track usage
+        await trackAIUsage({
+          userId: options.userId,
+          plan: plan.id,
+          provider: provider.name,
+          model,
+          feature: options.feature,
+          inputTokens,
+          outputTokens,
+          estimatedCost,
+        })
+
+        return {
+          message,
+          explanation: {} as Explanation, // Not used for chat
+          source: 'ai',
+          provider: provider.name,
+          model,
+          duration: Date.now() - startTime,
+          tokensUsed: inputTokens + outputTokens,
+          estimatedCost,
+        }
+      } catch (error) {
+        console.error(`[AI-ROUTER] Provider ${provider.name} chat failed:`, error)
+        lastError = error as Error
+        // Continue to next provider
+      }
+    }
+
+    // All providers failed
+    console.error('[AI-ROUTER] All providers failed!')
+    throw lastError || new Error('All AI providers failed')
+  }
+
+  /**
+   * Estimate chat input tokens
+   */
+  private estimateChatInputTokens(messages: Array<{ role: string; content: string }>): number {
+    const totalText = messages.map((m) => m.content).join(' ')
+    return Math.ceil(totalText.length / 4)
+  }
+
+  /**
+   * Estimate chat output tokens
+   */
+  private estimateChatOutputTokens(message: string): number {
+    return Math.ceil(message.length / 4)
+  }
+
+  /**
    * Get cache statistics
    */
   getCacheStats(): { size: number; providers: string[] } {
