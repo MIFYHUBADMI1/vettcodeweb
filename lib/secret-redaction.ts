@@ -64,8 +64,8 @@ function redactSecretValue(text: string): string {
     { regex: /(-----BEGIN (RSA |EC |DSA )?PRIVATE KEY-----[\s\S]+?-----END (RSA |EC |DSA )?PRIVATE KEY-----)/g, replace: () => '-----BEGIN PRIVATE KEY-----\n[REDACTED]\n-----END PRIVATE KEY-----' },
     
     // Passwords in connection strings
-    { regex: /(password=)([^\s&;"']+)/gi, replace: (_, prefix) => `${prefix}••••••••` },
-    { regex: /(pwd=)([^\s&;"']+)/gi, replace: (_, prefix) => `${prefix}••••••••` },
+    { regex: /(password=)([^\s&;"']+)/gi, replace: (_: string, prefix: string) => `${prefix}••••••••` },
+    { regex: /(pwd=)([^\s&;"']+)/gi, replace: (_: string, prefix: string) => `${prefix}••••••••` },
     
     // Generic long alphanumeric strings (likely secrets)
     { regex: /\b([a-zA-Z0-9]{40,})\b/g, replace: (match: string) => `${match.slice(0, 8)}••••••••••••••••••••••••••••••••` },
