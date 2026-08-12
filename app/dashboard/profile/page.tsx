@@ -7,9 +7,11 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import RefreshButton from '@/components/RefreshButton'
+import { useProfile, useDevices, useRevokeDevice } from '@/lib/hooks/useProfile'
 import { 
   User, 
   Mail, 
@@ -23,20 +25,6 @@ import {
   AlertTriangle
 } from 'lucide-react'
 
-interface ProfileData {
-  id: string
-  email: string
-  name?: string
-  image?: string
-  plan: string
-  emailVerified: boolean
-  emailVerifiedAt?: string
-  provider?: string
-  createdAt: string
-  lastLoginAt?: string
-  scanCount: number
-}
-
 interface Device {
   id: string
   deviceName: string
@@ -49,66 +37,29 @@ interface Device {
 
 export default function ProfilePage() {
   const { data: session } = useSession()
-  const [profile, setProfile] = useState<ProfileData | null>(null)
-  const [devices, setDevices] = useState<Device[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [revokingDeviceId, setRevokingDeviceId] = useState<string | null>(null)
+  const { data: profileData, isLoading: profileLoading, error: profileError, refetch: refetchProfile, dataUpdatedAt: profileUpdatedAt } = useProfile()
+  const { data: devicesData, isLoading: devicesLoading, error: devicesError, refetch: refetchDevices, dataUpdatedAt: devicesUpdatedAt } = useDevices()
+  const revokeDeviceMutation = useRevokeDevice()
+  
   const [deviceToRevoke, setDeviceToRevoke] = useState<Device | null>(null)
 
-  // Fetch profile and devices
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        setError(null)
+  const profile = profileData?.profile
+  const devices = devicesData?.devices || []
+  const loading = profileLoading || devicesLoading
+  const error = profileError || devicesError
 
-        const [profileRes, devicesRes] = await Promise.all([
-          fetch('/api/account/profile'),
-          fetch('/api/account/devices'),
-        ])
-
-        if (!profileRes.ok || !devicesRes.ok) {
-          throw new Error('Failed to load account data')
-        }
-
-        const profileData = await profileRes.json()
-        const devicesData = await devicesRes.json()
-
-        setProfile(profileData.profile)
-        setDevices(devicesData.devices)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load account data')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (session?.user) {
-      fetchData()
-    }
-  }, [session])
+  const handleRefresh = async () => {
+    await Promise.all([refetchProfile(), refetchDevices()])
+  }
 
   const handleRevokeDevice = async (device: Device) => {
     if (!device) return
 
-    setRevokingDeviceId(device.id)
     try {
-      const response = await fetch(`/api/account/devices/${device.id}/revoke`, {
-        method: 'POST',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to revoke device')
-      }
-
-      // Remove device from list
-      setDevices(devices.filter((d) => d.id !== device.id))
+      await revokeDeviceMutation.mutateAsync(device.id)
       setDeviceToRevoke(null)
     } catch (err: any) {
       alert(err.message || 'Failed to revoke device')
-    } finally {
-      setRevokingDeviceId(null)
     }
   }
 
@@ -161,11 +112,22 @@ export default function ProfilePage() {
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-6xl">
         {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Profile</h1>
-          <p className="text-gray-400">
-            Manage your account settings and connected devices
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Profile</h1>
+            <p className="text-gray-400">
+              Manage your account settings and connected devices
+            </p>
+          </div>
+          
+          {/* Refresh Button */}
+          {!loading && profile && (
+            <RefreshButton 
+              onRefresh={handleRefresh}
+              isRefreshing={profileLoading || devicesLoading}
+              lastUpdated={new Date(Math.max(profileUpdatedAt, devicesUpdatedAt))}
+            />
+          )}
         </div>
 
         {/* Loading State */}
@@ -184,10 +146,11 @@ export default function ProfilePage() {
         {error && !loading && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-4 text-red-400">
             <p className="font-medium">Error loading profile</p>
-            <p className="text-sm mt-1">{error}</p>
+            <p className="text-sm mt-1">{error.message || 'Failed to load account data'}</p>
             <button
-              onClick={() => window.location.reload()}
-              className="mt-3 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-sm transition-colors"
+              onClick={handleRefresh}
+              disabled={profileLoading || devicesLoading}
+              className="mt-3 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               Retry
             </button>
@@ -375,11 +338,11 @@ export default function ProfilePage() {
                       </div>
                       <button
                         onClick={() => setDeviceToRevoke(device)}
-                        disabled={revokingDeviceId === device.id}
+                        disabled={revokeDeviceMutation.isPending && revokeDeviceMutation.variables === device.id}
                         className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Revoke
+                        {revokeDeviceMutation.isPending && revokeDeviceMutation.variables === device.id ? 'Revoking...' : 'Revoke'}
                       </button>
                     </div>
                   ))}
@@ -445,10 +408,10 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={() => handleRevokeDevice(deviceToRevoke)}
-                  disabled={revokingDeviceId === deviceToRevoke.id}
+                  disabled={revokeDeviceMutation.isPending}
                   className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {revokingDeviceId === deviceToRevoke.id ? 'Revoking...' : 'Revoke Access'}
+                  {revokeDeviceMutation.isPending ? 'Revoking...' : 'Revoke Access'}
                 </button>
               </div>
             </div>
