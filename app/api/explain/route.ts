@@ -1,44 +1,86 @@
+/**
+ * AI Explanation API Endpoint
+ * POST /api/explain
+ * 
+ * Generates beginner-friendly explanations for security findings
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { generateAIExplanation } from '@/lib/ai'
-import { Finding } from '@/lib/types'
+import { redactSecrets, containsSecrets } from '@/lib/secret-redaction'
+import type { Finding, AIExplanationRequest, AIExplanationResponse } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const finding: Finding = body.finding
-    const userId = body.userId || 'anonymous' // In production, get from auth session
+    // 1. Authentication check
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // 2. Parse request body
+    const body: AIExplanationRequest = await request.json()
+    const { finding } = body
 
     if (!finding) {
-      return NextResponse.json({ error: 'Finding is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Finding is required' },
+        { status: 400 }
+      )
     }
 
-    // Generate explanation with subscription-aware routing
-    const result = await generateAIExplanation(finding, userId)
-
-    // Check if quota was exceeded
-    if (result.quotaInfo && !result.quotaInfo.allowed) {
-      return NextResponse.json({
-        explanation: result.explanation,
-        source: result.source,
-        duration: result.duration,
-        quotaExceeded: true,
-        quotaMessage: result.quotaInfo.reason,
-        upgradePrompt: 'Upgrade to Pro for more AI explanations!',
-      })
+    // 3. Redact secrets if necessary
+    let safeFinding = finding
+    if (containsSecrets(finding)) {
+      safeFinding = redactSecrets(finding)
+      console.log('🔒 Redacted secret before sending to AI')
     }
 
-    return NextResponse.json({
+    // 4. Generate explanation using AI Router
+    const startTime = Date.now()
+    
+    const result = await generateAIExplanation(
+      safeFinding,
+      session.user.email // Use email as userId
+    )
+
+    const duration = Date.now() - startTime
+
+    // 5. Build response
+    const response: AIExplanationResponse = {
       explanation: result.explanation,
       source: result.source,
-      provider: result.provider,
-      model: result.model,
-      duration: result.duration,
-      quotaExceeded: false,
-    })
-  } catch (error: any) {
-    console.error('Explanation API error:', error)
+      duration,
+    }
+
+    // Add quota info if quota was exceeded
+    if (result.quotaInfo && !result.quotaInfo.allowed) {
+      return NextResponse.json(
+        {
+          ...response,
+          quotaExceeded: true,
+          quotaReason: result.quotaInfo.reason,
+        },
+        { status: 200 } // Still 200, just with quota info
+      )
+    }
+
+    // 6. Return successful response
+    return NextResponse.json(response, { status: 200 })
+
+  } catch (error) {
+    console.error('AI Explanation error:', error)
+    
     return NextResponse.json(
-      { error: error.message || 'Failed to generate explanation' },
+      {
+        error: 'Failed to generate explanation',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     )
   }

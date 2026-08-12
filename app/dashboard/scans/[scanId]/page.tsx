@@ -16,6 +16,7 @@ import SecurityScoreCard from '@/components/scan-detail/SecurityScoreCard'
 import VettCodeSummary from '@/components/scan-detail/VettCodeSummary'
 import PriorityFindings from '@/components/scan-detail/PriorityFindings'
 import FindingExplorer from '@/components/scan-detail/FindingExplorer'
+import FindingDetailModal from '@/components/scan-detail/FindingDetailModal'
 import { useScan } from '@/lib/hooks/useScans'
 import { 
   Shield, 
@@ -55,8 +56,6 @@ export default function ScanDetailPage() {
 
   const handleFindingClick = (finding: Finding) => {
     setSelectedFinding(finding)
-    // TODO: Open finding detail modal/drawer
-    console.log('Selected finding:', finding)
   }
 
   return (
@@ -188,6 +187,14 @@ export default function ScanDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Finding Detail Modal */}
+      {selectedFinding && (
+        <FindingDetailModal
+          finding={selectedFinding}
+          onClose={() => setSelectedFinding(null)}
+        />
+      )}
     </DashboardLayout>
   )
 }
