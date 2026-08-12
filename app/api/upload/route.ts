@@ -111,22 +111,40 @@ export async function POST(request: NextRequest) {
 
     // Sanitize sensitive data
     console.log('[UPLOAD API] Sanitizing scan result...')
-    const sanitizedResult: ScanResult = sanitizeScanResult(body)
-    console.log('[UPLOAD API] Sanitization complete')
+    let sanitizedResult: ScanResult
+    try {
+      sanitizedResult = sanitizeScanResult(body)
+      console.log('[UPLOAD API] Sanitization complete')
+    } catch (sanitizeError: any) {
+      console.error('[UPLOAD API] Sanitization failed:', sanitizeError)
+      throw new Error(`Sanitization failed: ${sanitizeError.message}`)
+    }
 
     // Upload to ImageKit
     console.log('[UPLOAD API] Uploading to ImageKit...')
-    const imagekitUrl = await uploadScanResult(sanitizedResult)
-    console.log('[UPLOAD API] ImageKit upload success:', imagekitUrl)
+    let imagekitUrl: string
+    try {
+      imagekitUrl = await uploadScanResult(sanitizedResult)
+      console.log('[UPLOAD API] ImageKit upload success:', imagekitUrl)
+    } catch (imagekitError: any) {
+      console.error('[UPLOAD API] ImageKit upload failed:', imagekitError)
+      throw new Error(`ImageKit upload failed: ${imagekitError.message}`)
+    }
 
     // Store in database
     console.log('[UPLOAD API] Storing in database...')
-    const scan = await ScanModel.create(
-      auth.userId!,
-      sanitizedResult,
-      imagekitUrl
-    )
-    console.log('[UPLOAD API] Database insert success, scanId:', scan._id?.toString())
+    let scan
+    try {
+      scan = await ScanModel.create(
+        auth.userId!,
+        sanitizedResult,
+        imagekitUrl
+      )
+      console.log('[UPLOAD API] Database insert success, scanId:', scan._id?.toString())
+    } catch (dbError: any) {
+      console.error('[UPLOAD API] Database insert failed:', dbError)
+      throw new Error(`Database insert failed: ${dbError.message}`)
+    }
 
     return NextResponse.json({
       success: true,
@@ -136,26 +154,32 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Upload API error:', error)
-    console.error('Error stack:', error.stack)
-    console.error('Error details:', JSON.stringify(error, null, 2))
+    console.error('Error name:', error?.name)
+    console.error('Error message:', error?.message)
+    console.error('Error stack:', error?.stack)
+    console.error('Error cause:', error?.cause)
     
     // Return appropriate error based on type
-    if (error.message.includes('Authentication')) {
+    if (error.message?.includes('Authentication')) {
       return NextResponse.json(
-        { error: 'Authentication failed' },
+        { error: 'Authentication failed', details: error.message },
         { status: 401 }
       )
     }
     
-    if (error.message.includes('ImageKit')) {
+    if (error.message?.includes('ImageKit')) {
       return NextResponse.json(
-        { error: 'Failed to store scan result: ' + error.message },
+        { error: 'Failed to store scan result: ' + error.message, details: error.stack },
         { status: 500 }
       )
     }
     
     return NextResponse.json(
-      { error: error.message || 'Failed to upload scan result' },
+      { 
+        error: error.message || 'Failed to upload scan result',
+        name: error.name,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
