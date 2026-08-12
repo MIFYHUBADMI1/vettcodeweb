@@ -316,7 +316,7 @@ Rules:
         !parsed.whatYouLearn
       ) {
         throw new Error('Missing required fields')
-      }
+      } 
 
       return {
         title: parsed.title,
