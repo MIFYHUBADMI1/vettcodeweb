@@ -1,8 +1,8 @@
 /**
- * VettCode AI Coach Page - Redesigned
+ * VettCode AI Coach Page - Complete Redesign
  * /dashboard/scans/[scanId]/ai
  * 
- * Professional security coaching workspace
+ * A professional security coaching workspace designed for learning
  */
 
 'use client'
@@ -22,15 +22,11 @@ import {
   Send, 
   Loader2, 
   AlertCircle,
-  Shield,
-  TrendingUp,
-  TrendingDown,
-  Minus,
+  FileWarning,
   Copy,
   Check,
   ChevronDown,
-  ChevronUp,
-  Zap
+  Menu
 } from 'lucide-react'
 
 interface ChatMessage {
@@ -54,18 +50,26 @@ export default function AICoachPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [quotaExceeded, setQuotaExceeded] = useState(false)
   const [hasLoadedOverview, setHasLoadedOverview] = useState(false)
-  const [contextCollapsed, setContextCollapsed] = useState(false)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
-  const [showQuickActions, setShowQuickActions] = useState(false)
+  const [showScanContext, setShowScanContext] = useState(false)
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Auto-grow textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`
+    }
+  }, [input])
 
   // Load initial overview when scan loads
   useEffect(() => {
@@ -211,265 +215,305 @@ export default function AICoachPage() {
       })
     : []
 
-  const TrendIcon = securityScore
-    ? securityScore.score >= 80
-      ? TrendingUp
-      : securityScore.score >= 50
-      ? Minus
-      : TrendingDown
-    : Minus
-
   return (
     <DashboardLayout>
-      {/* Compact Context Bar */}
-      <div className="h-14 border-b border-gray-700 bg-gray-900/50 backdrop-blur-sm flex items-center px-4 gap-4">
-        <button
-          onClick={() => router.push(`/dashboard/scans/${scanId}`)}
-          className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Report</span>
-        </button>
-        
-        <div className="h-4 w-px bg-gray-700" />
-        
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-purple-400" />
-          <span className="font-semibold text-white text-sm">VettCode Coach</span>
+      {/* Compact Top Bar - Fixed */}
+      <div className="h-12 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-4 md:px-6 flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push(`/dashboard/scans/${scanId}`)}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span className="hidden sm:inline">Report</span>
+          </button>
+          
+          <div className="h-4 w-px bg-gray-800 hidden sm:block" />
+          
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-purple-400" />
+            <span className="font-semibold text-sm">VettCode Coach</span>
+          </div>
         </div>
 
         {scan && !isLoading && (
-          <>
-            <div className="h-4 w-px bg-gray-700 hidden md:block" />
-            <span className="text-gray-400 text-sm truncate hidden md:block">
-              {scan.scanPath}
-            </span>
-          </>
+          <button
+            onClick={() => setShowScanContext(!showScanContext)}
+            className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <Menu className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Scan Context</span>
+            <span className="sm:hidden">{scan.totalFindings}</span>
+          </button>
         )}
       </div>
 
-      {/* Main Workspace */}
-      <div className="flex h-[calc(100vh-8.5rem)] overflow-hidden">
-        {/* Scan Context Sidebar */}
-        {scan && !isLoading && (
-          <div className={`${contextCollapsed ? 'w-0' : 'w-full md:w-80'} transition-all border-r border-gray-700 bg-gray-900/30 flex-shrink-0 overflow-hidden`}>
-            <div className="h-full overflow-y-auto p-4 space-y-4">
-              {/* Mobile collapse button */}
+      {/* Main Workspace - Fills remaining viewport */}
+      <div className="flex-1 flex flex-col min-h-0 relative">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center max-w-sm">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+              <p className="text-red-400 mb-4">Failed to load scan</p>
               <button
-                onClick={() => setContextCollapsed(!contextCollapsed)}
-                className="md:hidden w-full flex items-center justify-between text-sm text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                onClick={() => router.push('/dashboard/scans')}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm"
               >
-                <span>Scan Context</span>
-                {contextCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                Back to scans
               </button>
-
-              {!contextCollapsed && (
-                <>
-                  {/* Security Score */}
-                  <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs text-gray-400 uppercase tracking-wide">Security Score</span>
-                      <TrendIcon className="w-4 h-4 text-gray-400" />
-                    </div>
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-3xl font-bold text-white">{securityScore?.score}</span>
-                      <span className="text-lg text-gray-400">/100</span>
-                      <span className="text-lg font-bold text-purple-400">{securityScore?.grade}</span>
-                    </div>
-                    <p className="text-xs text-gray-400">{securityScore?.status.replace(/_/g, ' ')}</p>
-                  </div>
-
-                  {/* Findings Breakdown */}
-                  <div className="space-y-2">
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">Findings</span>
-                    
-                    {scan.criticalCount > 0 && (
-                      <div className="flex items-center justify-between p-2 bg-red-500/10 border border-red-500/30 rounded">
-                        <span className="text-sm text-red-300">Critical</span>
-                        <span className="text-sm font-bold text-red-400">{scan.criticalCount}</span>
-                      </div>
-                    )}
-                    
-                    {scan.highCount > 0 && (
-                      <div className="flex items-center justify-between p-2 bg-orange-500/10 border border-orange-500/30 rounded">
-                        <span className="text-sm text-orange-300">High</span>
-                        <span className="text-sm font-bold text-orange-400">{scan.highCount}</span>
-                      </div>
-                    )}
-                    
-                    {scan.mediumCount > 0 && (
-                      <div className="flex items-center justify-between p-2 bg-yellow-500/10 border border-yellow-500/30 rounded">
-                        <span className="text-sm text-yellow-300">Medium</span>
-                        <span className="text-sm font-bold text-yellow-400">{scan.mediumCount}</span>
-                      </div>
-                    )}
-                    
-                    {scan.lowCount > 0 && (
-                      <div className="flex items-center justify-between p-2 bg-blue-500/10 border border-blue-500/30 rounded">
-                        <span className="text-sm text-blue-300">Low</span>
-                        <span className="text-sm font-bold text-blue-400">{scan.lowCount}</span>
-                      </div>
-                    )}
-                    
-                    {scan.infoCount > 0 && (
-                      <div className="flex items-center justify-between p-2 bg-gray-500/10 border border-gray-500/30 rounded">
-                        <span className="text-sm text-gray-300">Info</span>
-                        <span className="text-sm font-bold text-gray-400">{scan.infoCount}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Priority Issues */}
-                  {scan.scanData.findings.slice(0, 3).length > 0 && (
-                    <div className="space-y-2">
-                      <span className="text-xs text-gray-400 uppercase tracking-wide">Priority Issues</span>
-                      <div className="space-y-1">
-                        {scan.scanData.findings.slice(0, 3).map((finding, idx) => (
-                          <div key={idx} className="p-2 bg-gray-800/50 border border-gray-700 rounded text-xs">
-                            <div className="flex items-start gap-2">
-                              <AlertCircle className="w-3 h-3 text-red-400 flex-shrink-0 mt-0.5" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-gray-300 truncate">{finding.title}</p>
-                                <p className="text-gray-500 text-[10px] mt-0.5">{finding.file}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
             </div>
           </div>
         )}
 
-        {/* Chat Workspace */}
+        {/* AI Workspace */}
         {scan && !isLoading && (
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Messages Area */}
+          <>
+            {/* Scan Context Drawer - Overlay on mobile/tablet */}
+            {showScanContext && (
+              <>
+                {/* Backdrop */}
+                <div 
+                  className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+                  onClick={() => setShowScanContext(false)}
+                />
+                
+                {/* Drawer */}
+                <div className="fixed top-0 right-0 bottom-0 w-80 bg-gray-900 border-l border-gray-800 z-50 overflow-y-auto p-4 space-y-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-white">Scan Context</h3>
+                    <button
+                      onClick={() => setShowScanContext(false)}
+                      className="p-1 text-gray-400 hover:text-white rounded transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  {/* Score Overview */}
+                  <div className="bg-gray-800/50 rounded-lg p-3 space-y-2">
+                    <div className="text-xs text-gray-400 uppercase tracking-wide">Security Score</div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-bold text-white">{securityScore?.score}</span>
+                      <span className="text-gray-400">/100</span>
+                      <span className="text-xl font-bold text-purple-400">{securityScore?.grade}</span>
+                    </div>
+                    <p className="text-xs text-gray-400">{securityScore?.status.replace(/_/g, ' ')}</p>
+                  </div>
+
+                  {/* Findings Summary */}
+                  <div className="space-y-1.5">
+                    <div className="text-xs text-gray-400 uppercase tracking-wide">Findings</div>
+                    
+                    {scan.criticalCount > 0 && (
+                      <div className="flex items-center justify-between px-2 py-1.5 bg-red-500/10 border border-red-500/30 rounded text-sm">
+                        <span className="text-red-300">Critical</span>
+                        <span className="font-bold text-red-400">{scan.criticalCount}</span>
+                      </div>
+                    )}
+                    
+                    {scan.highCount > 0 && (
+                      <div className="flex items-center justify-between px-2 py-1.5 bg-orange-500/10 border border-orange-500/30 rounded text-sm">
+                        <span className="text-orange-300">High</span>
+                        <span className="font-bold text-orange-400">{scan.highCount}</span>
+                      </div>
+                    )}
+                    
+                    {scan.mediumCount > 0 && (
+                      <div className="flex items-center justify-between px-2 py-1.5 bg-yellow-500/10 border border-yellow-500/30 rounded text-sm">
+                        <span className="text-yellow-300">Medium</span>
+                        <span className="font-bold text-yellow-400">{scan.mediumCount}</span>
+                      </div>
+                    )}
+                    
+                    {scan.lowCount > 0 && (
+                      <div className="flex items-center justify-between px-2 py-1.5 bg-blue-500/10 border border-blue-500/30 rounded text-sm">
+                        <span className="text-blue-300">Low</span>
+                        <span className="font-bold text-blue-400">{scan.lowCount}</span>
+                      </div>
+                    )}
+                    
+                    {scan.infoCount > 0 && (
+                      <div className="flex items-center justify-between px-2 py-1.5 bg-gray-600/10 border border-gray-600/30 rounded text-sm">
+                        <span className="text-gray-300">Info</span>
+                        <span className="font-bold text-gray-400">{scan.infoCount}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Link to Report */}
+                  <button
+                    onClick={() => router.push(`/dashboard/scans/${scanId}`)}
+                    className="w-full px-3 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-lg text-sm transition-colors text-left flex items-center gap-2"
+                  >
+                    <FileWarning className="w-4 h-4" />
+                    <span>View full report</span>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Conversation Area - Scrollable */}
             <div className="flex-1 overflow-y-auto">
               {messages.length === 0 && !isGenerating ? (
-                /* Empty State - Show quick actions by default */
-                <div className="h-full flex items-center justify-center p-6">
-                  <div className="max-w-2xl w-full space-y-6">
-                    <div className="text-center space-y-2">
-                      <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-                        <Sparkles className="w-6 h-6 text-purple-400" />
+                /* Empty State - Centered, Educational */
+                <div className="min-h-full flex items-center justify-center p-6">
+                  <div className="w-full max-w-2xl mx-auto text-center space-y-8">
+                    {/* Hero */}
+                    <div className="space-y-3">
+                      <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mx-auto">
+                        <Sparkles className="w-8 h-8 text-purple-400" />
                       </div>
-                      <h2 className="text-xl font-bold text-white">VettCode Coach</h2>
-                      <p className="text-sm text-gray-400">
-                        Ask me anything about the <span className="text-white font-medium">{scan.totalFindings} findings</span> in this scan
+                      <h1 className="text-2xl font-bold text-white">VettCode Coach</h1>
+                      <p className="text-gray-400 max-w-md mx-auto leading-relaxed">
+                        Understand your scan. Learn what went wrong. Fix it with confidence.
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Ask me anything about the <span className="text-white font-medium">{scan.totalFindings} {scan.totalFindings === 1 ? 'finding' : 'findings'}</span> in this scan
                       </p>
                     </div>
 
-                    {/* Quick Start Actions - Always shown in empty state */}
-                    <div className="space-y-2">
-                      <p className="text-xs text-gray-500 uppercase tracking-wide text-center">Quick Start</p>
-                      <div className="flex flex-wrap gap-2 justify-center">
-                        {quickActions.map((action, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => sendMessage(action)}
-                            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white rounded-lg text-sm transition-all"
-                          >
-                            {action}
-                          </button>
-                        ))}
+                    {/* Suggested Questions */}
+                    {quickActions.length > 0 && (
+                      <div className="space-y-3">
+                        <p className="text-xs text-gray-500 uppercase tracking-wider">Suggested questions</p>
+                        <div className="flex flex-wrap gap-2 justify-center">
+                          {quickActions.map((action, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => sendMessage(action)}
+                              disabled={isGenerating}
+                              className="px-4 py-2 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white rounded-lg text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {action}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               ) : (
-                /* Conversation */
-                <div className="p-4 md:p-6 space-y-4">
+                /* Conversation Messages - Centered max-width */
+                <div className="w-full max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
                   {messages.map((msg, idx) => (
-                    <div key={idx} className="flex gap-3">
-                      {msg.role === 'assistant' && (
-                        <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Sparkles className="w-4 h-4 text-purple-400" />
-                        </div>
-                      )}
-                      
-                      <div className={`flex-1 ${msg.role === 'user' ? 'flex justify-end' : ''}`}>
-                        <div className={`${msg.role === 'user' ? 'bg-purple-600 text-white max-w-2xl' : 'bg-gray-800/50 border border-gray-700 text-gray-100'} rounded-lg px-4 py-3`}>
-                          {msg.role === 'assistant' ? (
+                    <div key={idx}>
+                      {msg.role === 'assistant' ? (
+                        /* AI Message */
+                        <div className="flex gap-3">
+                          <div className="w-7 h-7 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Sparkles className="w-4 h-4 text-purple-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-gray-500 mb-1.5">VettCode Coach</div>
                             <div className="prose prose-invert prose-sm max-w-none">
                               <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
                                   code: ({ node, inline, className, children, ...props }: any) => {
                                     return inline ? (
-                                      <code className="bg-gray-900 px-1.5 py-0.5 rounded text-purple-300 text-xs" {...props}>
+                                      <code className="bg-gray-800 px-1.5 py-0.5 rounded text-purple-300 text-xs font-mono" {...props}>
                                         {children}
                                       </code>
                                     ) : (
-                                      <div className="relative group">
+                                      <div className="relative group my-3">
                                         <button
                                           onClick={() => copyToClipboard(String(children), idx)}
-                                          className="absolute top-2 right-2 p-1.5 bg-gray-900 hover:bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                          className="absolute top-2 right-2 p-1.5 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                          title="Copy code"
                                         >
                                           {copiedIndex === idx ? (
-                                            <Check className="w-3 h-3 text-green-400" />
+                                            <Check className="w-3.5 h-3.5 text-green-400" />
                                           ) : (
-                                            <Copy className="w-3 h-3 text-gray-400" />
+                                            <Copy className="w-3.5 h-3.5" />
                                           )}
                                         </button>
-                                        <code className="block bg-gray-900 p-3 rounded-lg text-xs overflow-x-auto" {...props}>
-                                          {children}
-                                        </code>
+                                        <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto border border-gray-800">
+                                          <code className="text-xs font-mono text-gray-300" {...props}>
+                                            {children}
+                                          </code>
+                                        </pre>
                                       </div>
                                     )
                                   },
                                   a: ({ node, children, ...props }: any) => (
-                                    <a className="text-purple-400 hover:text-purple-300 underline" {...props}>
+                                    <a className="text-purple-400 hover:text-purple-300 underline underline-offset-2" {...props}>
                                       {children}
                                     </a>
                                   ),
                                   ul: ({ node, children, ...props }: any) => (
-                                    <ul className="space-y-1 list-disc list-inside" {...props}>
+                                    <ul className="space-y-1.5 my-3" {...props}>
                                       {children}
                                     </ul>
                                   ),
                                   ol: ({ node, children, ...props }: any) => (
-                                    <ol className="space-y-1 list-decimal list-inside" {...props}>
+                                    <ol className="space-y-1.5 my-3" {...props}>
                                       {children}
                                     </ol>
                                   ),
+                                  li: ({ node, children, ...props }: any) => (
+                                    <li className="text-gray-300 leading-relaxed" {...props}>
+                                      {children}
+                                    </li>
+                                  ),
                                   p: ({ node, children, ...props }: any) => (
-                                    <p className="mb-2 last:mb-0 leading-relaxed" {...props}>
+                                    <p className="text-gray-300 leading-relaxed my-3 first:mt-0 last:mb-0" {...props}>
                                       {children}
                                     </p>
                                   ),
                                   h3: ({ node, children, ...props }: any) => (
-                                    <h3 className="text-base font-semibold mt-3 mb-2 text-white" {...props}>
+                                    <h3 className="text-base font-semibold text-white mt-5 mb-2 first:mt-0" {...props}>
                                       {children}
                                     </h3>
+                                  ),
+                                  h4: ({ node, children, ...props }: any) => (
+                                    <h4 className="text-sm font-semibold text-white mt-4 mb-2" {...props}>
+                                      {children}
+                                    </h4>
                                   ),
                                   strong: ({ node, children, ...props }: any) => (
                                     <strong className="font-semibold text-white" {...props}>
                                       {children}
                                     </strong>
                                   ),
+                                  blockquote: ({ node, children, ...props }: any) => (
+                                    <blockquote className="border-l-2 border-purple-500/50 pl-4 italic text-gray-400 my-3" {...props}>
+                                      {children}
+                                    </blockquote>
+                                  ),
                                 }}
                               >
                                 {msg.content}
                               </ReactMarkdown>
                             </div>
-                          ) : (
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      ) : (
+                        /* User Message */
+                        <div className="flex justify-end">
+                          <div className="max-w-2xl bg-purple-600 text-white rounded-lg px-4 py-2.5">
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
 
+                  {/* AI Thinking */}
                   {isGenerating && (
                     <div className="flex gap-3">
-                      <div className="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <div className="w-7 h-7 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
                         <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
                       </div>
-                      <div className="bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3">
+                      <div className="flex-1">
+                        <div className="text-xs text-gray-500 mb-1.5">VettCode Coach</div>
                         <p className="text-sm text-gray-400">Analyzing your scan...</p>
                       </div>
                     </div>
@@ -480,105 +524,82 @@ export default function AICoachPage() {
               )}
             </div>
 
-            {/* Input Composer */}
-            <div className="border-t border-gray-700 bg-gray-900/50 p-4">
+            {/* Composer Area - Fixed at bottom */}
+            <div className="flex-shrink-0 border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+              {/* Quota Warning */}
               {quotaExceeded && (
-                <div className="mb-3 p-3 bg-yellow-500/10 border border-yellow-500/50 rounded-lg">
-                  <p className="text-xs text-yellow-400">
-                    Daily AI limit reached. Upgrade for more requests or wait until tomorrow!
-                  </p>
+                <div className="px-4 md:px-6 pt-3">
+                  <div className="max-w-3xl mx-auto p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                    <p className="text-xs text-yellow-400">
+                      Daily AI limit reached. Upgrade for more requests or wait until tomorrow.
+                    </p>
+                  </div>
                 </div>
               )}
 
-              {/* Quick Actions Toggle - Only show when conversation started */}
-              {messages.length > 0 && !isGenerating && (
-                <div className="mb-3">
-                  <button
-                    onClick={() => setShowQuickActions(!showQuickActions)}
-                    className="flex items-center gap-2 text-xs text-gray-400 hover:text-purple-400 transition-colors"
-                  >
-                    <Zap className="w-3 h-3" />
-                    <span>{showQuickActions ? 'Hide' : 'Show'} quick actions</span>
-                  </button>
-                  
-                  {showQuickActions && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {quickActions.map((action, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            sendMessage(action)
-                            setShowQuickActions(false)
-                          }}
-                          disabled={isGenerating}
-                          className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {action}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+              {/* Suggested Actions - After first message */}
+              {messages.length > 0 && quickActions.length > 0 && !isGenerating && (
+                <div className="px-4 md:px-6 pt-3">
+                  <div className="max-w-3xl mx-auto">
+                    <details className="group">
+                      <summary className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-400 cursor-pointer list-none">
+                        <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
+                        <span>Suggested questions</span>
+                      </summary>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {quickActions.map((action, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => sendMessage(action)}
+                            disabled={isGenerating}
+                            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {action}
+                          </button>
+                        ))}
+                      </div>
+                    </details>
+                  </div>
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
+              {/* Input Composer */}
+              <div className="px-4 md:px-6 py-4">
+                <div className="max-w-3xl mx-auto relative">
                   <textarea
-                    ref={inputRef}
+                    ref={textareaRef}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask VettCode about this scan..."
                     disabled={isGenerating || quotaExceeded}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    rows={2}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 pr-12 text-sm text-white placeholder-gray-500 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    rows={1}
+                    style={{ minHeight: '44px', maxHeight: '160px' }}
                   />
-                  <div className="absolute bottom-2 right-2 text-[10px] text-gray-600">
-                    {input.length}/500
-                  </div>
-                </div>
-                <button
-                  onClick={() => sendMessage()}
-                  disabled={!input.trim() || isGenerating || quotaExceeded}
-                  className="px-4 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium"
-                >
-                  {isGenerating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
+                  
+                  {/* Send Button */}
+                  <button
+                    onClick={() => sendMessage()}
+                    disabled={!input.trim() || isGenerating || quotaExceeded}
+                    className="absolute right-2 bottom-2 p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-purple-600 group"
+                    title="Send message (Enter)"
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
                       <Send className="w-4 h-4" />
-                      <span className="hidden sm:inline">Send</span>
-                    </>
-                  )}
-                </button>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Help Text */}
+                <p className="text-[10px] text-gray-600 text-center mt-2 max-w-3xl mx-auto">
+                  Press Enter to send • Shift+Enter for new line
+                </p>
               </div>
-              <p className="text-[10px] text-gray-600 mt-2">
-                Enter to send • Shift+Enter for new line
-              </p>
             </div>
-          </div>
-        )}
-
-        {/* Loading/Error States */}
-        {isLoading && (
-          <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-          </div>
-        )}
-
-        {error && (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center">
-              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
-              <p className="text-red-400 mb-4">Failed to load scan</p>
-              <button
-                onClick={() => router.push('/dashboard/scans')}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-              >
-                Back to scans
-              </button>
-            </div>
-          </div>
+          </>
         )}
       </div>
     </DashboardLayout>
