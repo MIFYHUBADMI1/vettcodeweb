@@ -526,11 +526,11 @@ export default function AICoachPage() {
             </div>
 
             {/* Composer Area - Fixed at bottom */}
-            <div className="flex-shrink-0 border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+            <div className="flex-shrink-0 border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm relative">
               {/* Quota Warning */}
               {quotaExceeded && (
-                <div className="px-4 md:px-6 pt-3">
-                  <div className="max-w-3xl mx-auto p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                <div className="px-4 md:px-6 pt-2">
+                  <div className="max-w-3xl mx-auto p-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                     <p className="text-xs text-yellow-400">
                       Daily AI limit reached. Upgrade for more requests or wait until tomorrow.
                     </p>
@@ -538,26 +538,29 @@ export default function AICoachPage() {
                 </div>
               )}
 
-              {/* Suggested Actions - After first message */}
+              {/* Suggested Actions - Expands UPWARD */}
               {messages.length > 0 && quickActions.length > 0 && !isGenerating && (
-                <div className="px-4 md:px-6 pt-3">
-                  <div className="max-w-3xl mx-auto">
+                <div className="px-4 md:px-6">
+                  <div className="max-w-3xl mx-auto relative">
                     <details className="group">
-                      <summary className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-400 cursor-pointer list-none">
+                      <summary className="flex items-center gap-2 text-xs text-gray-500 hover:text-gray-400 cursor-pointer list-none py-2">
                         <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
                         <span>Suggested questions</span>
                       </summary>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {quickActions.map((action, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => sendMessage(action)}
-                            disabled={isGenerating}
-                            className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {action}
-                          </button>
-                        ))}
+                      {/* This expands UPWARD using absolute positioning */}
+                      <div className="absolute bottom-full left-0 right-0 pb-2 max-h-[200px] overflow-y-auto">
+                        <div className="flex flex-wrap gap-2 p-3 bg-gray-900 border border-gray-700 rounded-lg shadow-xl">
+                          {quickActions.map((action, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => sendMessage(action)}
+                              disabled={isGenerating}
+                              className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white rounded-lg text-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {action}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </details>
                   </div>
@@ -565,7 +568,7 @@ export default function AICoachPage() {
               )}
 
               {/* Input Composer */}
-              <div className="px-4 md:px-6 py-4">
+              <div className="px-4 md:px-6 py-3">
                 <div className="max-w-3xl mx-auto">
                   <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-[28px] border border-gray-700 hover:border-gray-600 focus-within:border-purple-500/50 transition-all shadow-lg">
                     <textarea
@@ -575,9 +578,9 @@ export default function AICoachPage() {
                       onKeyDown={handleKeyDown}
                       placeholder="Ask VettCode about this scan..."
                       disabled={isGenerating || quotaExceeded}
-                      className="w-full bg-transparent px-5 py-3.5 pr-14 text-sm text-white placeholder-gray-500 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-transparent px-5 py-3 pr-14 text-sm text-white placeholder-gray-500 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                       rows={1}
-                      style={{ minHeight: '52px', maxHeight: '160px' }}
+                      style={{ minHeight: '48px', maxHeight: '160px' }}
                     />
                     
                     {/* Send Button */}
@@ -596,7 +599,7 @@ export default function AICoachPage() {
                   </div>
                   
                   {/* Help Text */}
-                  <p className="text-[10px] text-gray-500 text-center mt-3">
+                  <p className="text-[10px] text-gray-500 text-center mt-2">
                     Press Enter to send • Shift+Enter for new line
                   </p>
                 </div>
