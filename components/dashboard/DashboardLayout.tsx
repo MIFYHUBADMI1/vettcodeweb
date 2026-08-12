@@ -4,6 +4,7 @@ import { ReactNode, useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
+import { useQueryClient } from '@tanstack/react-query'
 import { 
   LayoutDashboard, 
   FolderKanban, 
@@ -65,6 +66,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
   const { data: session } = useSession()
+  const queryClient = useQueryClient()
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
@@ -148,6 +150,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleSignOut = async () => {
     setUserMenuOpen(false)
+    
+    // Clear all user-specific cached data before signing out
+    queryClient.clear()
+    
     await signOut({ callbackUrl: '/' })
   }
 
