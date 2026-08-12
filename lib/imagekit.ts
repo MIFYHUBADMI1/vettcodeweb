@@ -39,6 +39,9 @@ export async function uploadScanResult(jsonData: any): Promise<string> {
     const fileName = `scan-${Date.now()}.json`
     const fileContent = JSON.stringify(jsonData, null, 2)
     
+    console.log('[ImageKit] Starting upload, filename:', fileName)
+    console.log('[ImageKit] File size:', fileContent.length, 'bytes')
+    
     const result = await imagekit.upload({
       file: Buffer.from(fileContent).toString('base64'),
       fileName: fileName,
@@ -46,10 +49,14 @@ export async function uploadScanResult(jsonData: any): Promise<string> {
       tags: ['vettcode', 'scan', 'security'],
     })
     
+    console.log('[ImageKit] Upload successful, URL:', result.url)
     return result.url
-  } catch (error) {
-    console.error('ImageKit upload error:', error)
-    throw new Error('Failed to upload scan result')
+  } catch (error: any) {
+    console.error('[ImageKit] Upload error:', error)
+    console.error('[ImageKit] Error name:', error?.name)
+    console.error('[ImageKit] Error message:', error?.message)
+    console.error('[ImageKit] Error response:', error?.response?.data || error?.response)
+    throw new Error(`ImageKit upload error: ${error.message}`)
   }
 }
 
