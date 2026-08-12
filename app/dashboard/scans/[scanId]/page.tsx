@@ -46,7 +46,7 @@ export default function ScanDetailPage() {
     const diffDays = Math.floor(diffMs / 86400000)
 
     if (diffMins < 1) return 'Just now'
-    if (diffMins < 60) return `${diffMins} min ago'
+    if (diffMins < 60) return `${diffMins} min ago`
     if (diffHours < 24) return `${diffHours}h ago`
     if (diffDays === 1) return 'Yesterday'
     if (diffDays < 30) return `${diffDays}d ago`
