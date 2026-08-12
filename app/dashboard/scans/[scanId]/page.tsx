@@ -2,15 +2,17 @@
  * Scan Detail Page
  * /dashboard/scans/[scanId]
  * 
- * Displays detailed scan results and findings
+ * Displays detailed scan results with centralized caching
  */
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import RefreshButton from '@/components/RefreshButton'
+import { useScan } from '@/lib/hooks/useScans'
 import { 
   Shield, 
   Clock,
@@ -19,23 +21,7 @@ import {
   FileCode,
   Info
 } from 'lucide-react'
-import type { ScanResult, Finding } from '@/lib/types'
-
-interface ScanDetail {
-  id: string
-  scanPath: string
-  timestamp: string
-  sensorsUsed: string[]
-  sensorsSkipped: string[]
-  totalFindings: number
-  criticalCount: number
-  highCount: number
-  mediumCount: number
-  lowCount: number
-  infoCount: number
-  scanData: ScanResult
-  createdAt: string
-}
+import type { Finding } from '@/lib/types'
 
 export default function ScanDetailPage() {
   const { data: session } = useSession()
@@ -43,38 +29,9 @@ export default function ScanDetailPage() {
   const router = useRouter()
   const scanId = params.scanId as string
 
-  const [scan, setScan] = useState<ScanDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function fetchScan() {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const response = await fetch(`/api/scans/${scanId}`)
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Scan not found')
-          }
-          throw new Error('Failed to load scan')
-        }
-
-        const data = await response.json()
-        setScan(data.scan)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load scan')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (session?.user && scanId) {
-      fetchScan()
-    }
-  }, [session, scanId])
+  const { data, isLoading, error, refetch, dataUpdatedAt, isFetching } = useScan(scanId)
+  
+  const scan = data?.scan
 
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString)
@@ -128,17 +85,28 @@ export default function ScanDetailPage() {
   return (
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-7xl">
-        {/* Back Button */}
-        <button
-          onClick={() => router.push('/dashboard/scans')}
-          className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back to scans</span>
-        </button>
+        {/* Header with Back Button and Refresh */}
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            onClick={() => router.push('/dashboard/scans')}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Back to scans</span>
+          </button>
+
+          {/* Refresh Button */}
+          {!isLoading && scan && (
+            <RefreshButton 
+              onRefresh={refetch}
+              isRefreshing={isFetching}
+              lastUpdated={new Date(dataUpdatedAt)}
+            />
+          )}
+        </div>
 
         {/* Loading State */}
-        {loading && (
+        {isLoading && (
           <div className="space-y-6">
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8 animate-pulse">
               <div className="h-8 bg-gray-700 rounded w-1/3 mb-4" />
@@ -148,26 +116,35 @@ export default function ScanDetailPage() {
         )}
 
         {/* Error State */}
-        {error && !loading && (
+        {error && !isLoading && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-6 text-red-400">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 mt-0.5" />
               <div>
                 <p className="font-medium">Failed to load scan</p>
-                <p className="text-sm mt-1">{error}</p>
-                <button
-                  onClick={() => router.push('/dashboard/scans')}
-                  className="mt-3 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-white transition-colors"
-                >
-                  Go back
-                </button>
+                <p className="text-sm mt-1">{error.message || 'Failed to load scan'}</p>
+                <div className="flex gap-3 mt-3">
+                  <button
+                    onClick={() => refetch()}
+                    disabled={isFetching}
+                    className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-sm transition-colors disabled:opacity-50"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    onClick={() => router.push('/dashboard/scans')}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-white transition-colors"
+                  >
+                    Go back
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
         {/* Scan Content */}
-        {scan && !loading && (
+        {scan && !isLoading && (
           <div className="space-y-6">
             {/* Header */}
             <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-8">

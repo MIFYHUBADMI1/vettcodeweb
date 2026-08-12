@@ -2,14 +2,15 @@
  * Security Scans Page
  * /dashboard/scans
  * 
- * Displays user's scan history
+ * Displays user's scan history with centralized caching
  */
 
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
+import RefreshButton from '@/components/RefreshButton'
+import { useScans } from '@/lib/hooks/useScans'
 import Link from 'next/link'
 import { 
   Shield, 
@@ -20,51 +21,11 @@ import {
   ChevronRight
 } from 'lucide-react'
 
-interface ScanSummary {
-  id: string
-  scanPath: string
-  timestamp: string
-  totalFindings: number
-  criticalCount: number
-  highCount: number
-  mediumCount: number
-  lowCount: number
-  infoCount: number
-  sensorsUsed: string[]
-  createdAt: string
-}
-
 export default function ScansPage() {
   const { data: session } = useSession()
-  const [scans, setScans] = useState<ScanSummary[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, isLoading, error, refetch, dataUpdatedAt, isFetching } = useScans()
 
-  useEffect(() => {
-    async function fetchScans() {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const response = await fetch('/api/scans')
-
-        if (!response.ok) {
-          throw new Error('Failed to load scans')
-        }
-
-        const data = await response.json()
-        setScans(data.scans)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load scans')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (session?.user) {
-      fetchScans()
-    }
-  }, [session])
+  const scans = data?.scans || []
 
   const getRelativeTime = (dateString: string) => {
     const date = new Date(dateString)
@@ -96,18 +57,29 @@ export default function ScansPage() {
     <DashboardLayout>
       <div className="p-6 lg:p-8 max-w-7xl">
         {/* Page Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Shield className="w-8 h-8 text-purple-400" />
-            <h1 className="text-3xl font-bold text-white">Security Scans</h1>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Shield className="w-8 h-8 text-purple-400" />
+              <h1 className="text-3xl font-bold text-white">Security Scans</h1>
+            </div>
+            <p className="text-gray-400">
+              View and manage your VettCode CLI scan history
+            </p>
           </div>
-          <p className="text-gray-400">
-            View and manage your VettCode CLI scan history
-          </p>
+
+          {/* Refresh Button */}
+          {!isLoading && scans.length > 0 && (
+            <RefreshButton 
+              onRefresh={refetch}
+              isRefreshing={isFetching}
+              lastUpdated={new Date(dataUpdatedAt)}
+            />
+          )}
         </div>
 
         {/* Loading State */}
-        {loading && (
+        {isLoading && (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <div
@@ -122,16 +94,17 @@ export default function ScansPage() {
         )}
 
         {/* Error State */}
-        {error && !loading && (
+        {error && !isLoading && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-6 text-red-400">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 mt-0.5" />
               <div>
                 <p className="font-medium">Failed to load scans</p>
-                <p className="text-sm mt-1">{error}</p>
+                <p className="text-sm mt-1">{error.message || 'Failed to load scans'}</p>
                 <button
-                  onClick={() => window.location.reload()}
-                  className="mt-3 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-sm transition-colors"
+                  onClick={() => refetch()}
+                  disabled={isFetching}
+                  className="mt-3 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-sm transition-colors disabled:opacity-50"
                 >
                   Retry
                 </button>
@@ -141,7 +114,7 @@ export default function ScansPage() {
         )}
 
         {/* Empty State */}
-        {!loading && !error && scans.length === 0 && (
+        {!isLoading && !error && scans.length === 0 && (
           <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-2xl p-12 text-center">
             <Terminal className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-white mb-2">
@@ -162,7 +135,7 @@ export default function ScansPage() {
         )}
 
         {/* Scans List */}
-        {!loading && !error && scans.length > 0 && (
+        {!isLoading && !error && scans.length > 0 && (
           <div className="space-y-4">
             {scans.map((scan) => (
               <Link
