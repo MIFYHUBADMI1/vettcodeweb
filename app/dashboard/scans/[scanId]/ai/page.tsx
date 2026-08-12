@@ -566,9 +566,9 @@ export default function AICoachPage() {
                     </div>
                   )}
 
-                  {/* Input Area with integrated buttons */}
-                  <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-[28px] border border-gray-700 hover:border-gray-600 focus-within:border-purple-500/50 transition-all shadow-lg">
-                    {/* Suggested Questions Trigger - Inside input area */}
+                  {/* Input Area - Clean, no visible container */}
+                  <div className="relative">
+                    {/* Suggested Questions Trigger - Floating left */}
                     {messages.length > 0 && quickActions.length > 0 && !isGenerating && (
                       <button
                         onClick={(e) => {
@@ -577,7 +577,7 @@ export default function AICoachPage() {
                             details.open = !details.open
                           }
                         }}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-purple-400 transition-colors rounded-lg hover:bg-gray-700/50"
+                        className="absolute left-0 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-purple-400 transition-colors rounded-lg hover:bg-gray-800/50"
                         title="Show suggested questions"
                       >
                         <Zap className="w-4 h-4" />
@@ -591,16 +591,16 @@ export default function AICoachPage() {
                       onKeyDown={handleKeyDown}
                       placeholder="Ask VettCode about this scan..."
                       disabled={isGenerating || quotaExceeded}
-                      className={`w-full bg-transparent ${messages.length > 0 && quickActions.length > 0 ? 'pl-11' : 'pl-4'} pr-12 py-3 text-sm text-white placeholder-gray-500 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
+                      className={`w-full bg-transparent border-none ${messages.length > 0 && quickActions.length > 0 ? 'pl-10' : 'pl-0'} pr-12 py-3 text-sm text-white placeholder-gray-500 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
                       rows={1}
                       style={{ minHeight: '48px', maxHeight: '160px' }}
                     />
                     
-                    {/* Send Button */}
+                    {/* Send Button - Floating right */}
                     <button
                       onClick={() => sendMessage()}
                       disabled={!input.trim() || isGenerating || quotaExceeded}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-purple-600 shadow-md hover:shadow-lg disabled:shadow-none"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-full transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-purple-600"
                       title="Send message (Enter)"
                     >
                       {isGenerating ? (
