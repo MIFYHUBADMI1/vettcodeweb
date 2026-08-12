@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState, useMemo } from 'next'
+import { useState, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import RefreshButton from '@/components/RefreshButton'
