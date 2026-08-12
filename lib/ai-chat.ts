@@ -4,9 +4,6 @@
  */
 
 import { AIRouter } from './ai-router'
-import { getUserPlan } from './subscription'
-import { checkQuota, trackAIUsage } from './usage-tracking'
-import { redactSecrets, containsSecrets } from './secret-redaction'
 import type { Finding } from './types'
 
 const aiRouter = new AIRouter()
@@ -50,6 +47,10 @@ export async function generateScanOverview(
   userId: string
 ): Promise<ChatResponse> {
   const startTime = Date.now()
+  
+  // Dynamic imports for server-only modules
+  const { getUserPlan } = await import('./subscription')
+  const { checkQuota, trackAIUsage } = await import('./usage-tracking')
   
   // Check quota
   const plan = await getUserPlan(userId)
@@ -108,6 +109,10 @@ export async function generateChatResponse(
 ): Promise<ChatResponse> {
   const startTime = Date.now()
 
+  // Dynamic imports for server-only modules
+  const { getUserPlan } = await import('./subscription')
+  const { checkQuota } = await import('./usage-tracking')
+
   // Check quota
   const plan = await getUserPlan(userId)
   const quotaCheck = await checkQuota(
@@ -165,10 +170,15 @@ async function callAIChat(
   userId: string,
   feature: string
 ): Promise<Omit<ChatResponse, 'duration'>> {
+  // Dynamic imports
+  const { getUserPlan } = await import('./subscription')
+  const { trackAIUsage } = await import('./usage-tracking')
+  const { getModelsForPlan, findBestModel } = await import('./model-registry')
+  const { AIProviderRegistry } = await import('./ai-providers')
+  
   const plan = await getUserPlan(userId)
   
   // Get best model for chat
-  const { getModelsForPlan, findBestModel } = require('./model-registry')
   const allowedModels = getModelsForPlan(plan.allowedModelTiers)
   const bestModel = findBestModel(allowedModels, 'explanation', plan.priority >= 3)
 
@@ -177,7 +187,6 @@ async function callAIChat(
   }
 
   // Get provider
-  const { AIProviderRegistry } = require('./ai-providers')
   const registry = new AIProviderRegistry()
   const provider = registry.getProvider(bestModel.provider)
 
