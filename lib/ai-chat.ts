@@ -181,53 +181,72 @@ async function callAIChat(
     throw new Error('Provider not available')
   }
 
-  // Make API call (simplified - actual implementation would use provider's chat method)
-  const fullMessages = [
-    ...messages,
-    { role: 'user' as const, content: userPrompt },
-  ]
-
-  // For now, use the existing explanation method as a base
-  // In production, you'd extend providers to support full chat
-  const response = await provider.generateExplanation(
-    {
-      title: 'Chat Query',
-      message: userPrompt,
-      severity: 'INFO' as const,
-      category: 'CODE' as const,
-      file: 'scan',
-      line: 0,
-      id: 0,
-      metadata: {},
+  // Build a simple finding object to use the explanation system
+  // This is a workaround until we have proper chat endpoints
+  const chatFinding = {
+    id: 0,
+    title: 'Security Scan Chat',
+    message: userPrompt,
+    severity: 'INFO' as const,
+    category: 'CODE' as const,
+    file: 'chat',
+    line: 0,
+    metadata: {
+      chatContext: JSON.stringify(messages.slice(-3)), // Last 3 messages for context
     },
-    bestModel.id,
-    plan.maxTokensPerRequest
-  )
+  }
 
-  // Track usage
-  const inputTokens = estimateTokens(userPrompt + JSON.stringify(messages))
-  const outputTokens = estimateTokens(response.whatsWrong + response.howToFix)
-  const cost = (inputTokens * bestModel.costPerInputToken + outputTokens * bestModel.costPerOutputToken) / 1000000
+  try {
+    const response = await provider.generateExplanation(
+      chatFinding,
+      bestModel.id,
+      plan.maxTokensPerRequest
+    )
 
-  await trackAIUsage({
-    userId,
-    plan: plan.id,
-    provider: bestModel.provider,
-    model: bestModel.id,
-    feature,
-    inputTokens,
-    outputTokens,
-    estimatedCost: cost,
-  })
+    // Track usage
+    const inputTokens = estimateTokens(userPrompt + JSON.stringify(messages))
+    const outputTokens = estimateTokens(response.whatsWrong + response.whyItMatters + response.howToFix)
+    const cost = (inputTokens * bestModel.costPerInputToken + outputTokens * bestModel.costPerOutputToken) / 1000000
 
-  // Convert explanation format to chat message
-  const message = formatExplanationAsMessage(response)
+    await trackAIUsage({
+      userId,
+      plan: plan.id,
+      provider: bestModel.provider,
+      model: bestModel.id,
+      feature,
+      inputTokens,
+      outputTokens,
+      estimatedCost: cost,
+    })
 
-  return {
-    message,
-    source: 'ai',
-    provider: bestModel.provider,
-    model: bestModel.id,
+    // Convert explanation format to conversational chat message
+    let message = ''
+    
+    if (response.whatsWrong) {
+      message += response.whatsWrong
+    }
+    
+    if (response.whyItMatters && response.whyItMatters !== response.whatsWrong) {
+      message += '\n\n' + response.whyItMatters
+    }
+    
+    if (response.howToFix && response.howToFix.length > 10) {
+      message += '\n\n### How to fix\n\n' + response.howToFix
+    }
+    
+    if (response.whatToLearn && response.whatToLearn.length > 10) {
+      message += '\n\n### What you'll learn\n\n' + response.whatToLearn
+    }
+
+    return {
+      message: message.trim() || 'I can help you understand this scan. What would you like to know?',
+      source: 'ai',
+      provider: bestModel.provider,
+      model: bestModel.id,
+    }
+  } catch (error) {
+    console.error('AI provider call failed:', error)
+    throw error
   }
 }
 
@@ -362,13 +381,6 @@ function generateTemplateOverview(context: ScanContext): string {
   overview += `**What you'll learn**: Each issue you fix teaches you how to write more secure code. Focus on understanding why these patterns are risky.`
 
   return overview
-}
-
-/**
- * Format AI explanation as chat message
- */
-function formatExplanationAsMessage(explanation: any): string {
-  return `${explanation.whatsWrong}\n\n${explanation.whyItMatters}\n\n**How to fix**: ${explanation.howToFix}`
 }
 
 /**
