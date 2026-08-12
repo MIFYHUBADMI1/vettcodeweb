@@ -538,19 +538,16 @@ export default function AICoachPage() {
                 </div>
               )}
 
-              {/* Container for suggested actions and input */}
-              <div className="px-4 md:px-6 pb-3 pt-2">
-                <div className="max-w-3xl mx-auto space-y-2">
-                  {/* Suggested Actions - Expands UPWARD */}
+              {/* Input Composer - Compact at bottom */}
+              <div className="px-4 md:px-6 py-2.5">
+                <div className="max-w-3xl mx-auto">
+                  {/* Suggested Actions Panel - Expands UPWARD when open */}
                   {messages.length > 0 && quickActions.length > 0 && !isGenerating && (
                     <div className="relative">
                       <details className="group">
-                        <summary className="flex items-center gap-2 text-xs text-gray-400 hover:text-gray-300 cursor-pointer list-none pb-1">
-                          <ChevronDown className="w-3 h-3 transition-transform group-open:rotate-180" />
-                          <span>Suggested questions</span>
-                        </summary>
+                        <summary className="hidden"></summary>
                         {/* This expands UPWARD */}
-                        <div className="absolute bottom-full left-0 right-0 mb-1 max-h-[180px] overflow-y-auto">
+                        <div className="absolute bottom-full left-0 right-0 mb-2 max-h-[180px] overflow-y-auto">
                           <div className="flex flex-wrap gap-2 p-3 bg-gray-800/95 border border-gray-700 rounded-lg shadow-xl backdrop-blur-sm">
                             {quickActions.map((action, idx) => (
                               <button
@@ -568,8 +565,24 @@ export default function AICoachPage() {
                     </div>
                   )}
 
-                  {/* Input Composer - Always at bottom */}
+                  {/* Input Area with integrated buttons */}
                   <div className="relative bg-gray-800/50 backdrop-blur-sm rounded-[28px] border border-gray-700 hover:border-gray-600 focus-within:border-purple-500/50 transition-all shadow-lg">
+                    {/* Suggested Questions Trigger - Inside input area */}
+                    {messages.length > 0 && quickActions.length > 0 && !isGenerating && (
+                      <button
+                        onClick={(e) => {
+                          const details = e.currentTarget.closest('.max-w-3xl')?.querySelector('details')
+                          if (details) {
+                            details.open = !details.open
+                          }
+                        }}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-purple-400 transition-colors rounded-lg hover:bg-gray-700/50"
+                        title="Show suggested questions"
+                      >
+                        <Zap className="w-4 h-4" />
+                      </button>
+                    )}
+
                     <textarea
                       ref={textareaRef}
                       value={input}
@@ -577,7 +590,7 @@ export default function AICoachPage() {
                       onKeyDown={handleKeyDown}
                       placeholder="Ask VettCode about this scan..."
                       disabled={isGenerating || quotaExceeded}
-                      className="w-full bg-transparent pl-4 pr-12 py-3 text-sm text-white placeholder-gray-500 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                      className={`w-full bg-transparent ${messages.length > 0 && quickActions.length > 0 ? 'pl-11' : 'pl-4'} pr-12 py-3 text-sm text-white placeholder-gray-500 resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed`}
                       rows={1}
                       style={{ minHeight: '48px', maxHeight: '160px' }}
                     />
@@ -598,7 +611,7 @@ export default function AICoachPage() {
                   </div>
                   
                   {/* Help Text */}
-                  <p className="text-[10px] text-gray-500 text-center pt-1">
+                  <p className="text-[10px] text-gray-500 text-center pt-1.5">
                     Press Enter to send • Shift+Enter for new line
                   </p>
                 </div>
