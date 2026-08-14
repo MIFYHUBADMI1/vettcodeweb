@@ -21,9 +21,6 @@ export default function ToastProvider() {
       draggable
       pauseOnHover
       theme="dark"
-      toastClassName="bg-gray-900 border border-gray-700"
-      bodyClassName="text-white"
-      progressClassName="bg-gradient-to-r from-purple-600 to-green-600"
     />
   )
 }
