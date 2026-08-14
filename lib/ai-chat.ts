@@ -31,10 +31,11 @@ export interface ChatResponse {
  */
 export async function generateScanOverview(
   scanContext: ScanContext,
-  userId: string
+  userId: string,
+  requestId: string = 'legacy'
 ): Promise<ChatResponse> {
   const startTime = Date.now()
-  console.log('[AI-CHAT] Generating scan overview for user:', userId)
+  console.log(`[AI-CHAT][${requestId}] Generating scan overview for user:`, userId)
   
   // Dynamic imports for server-only modules
   const { getUserPlan } = await import('./subscription')
@@ -42,7 +43,7 @@ export async function generateScanOverview(
   
   // Check quota
   const plan = await getUserPlan(userId)
-  console.log('[AI-CHAT] User plan:', plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
+  console.log(`[AI-CHAT][${requestId}] User plan:`, plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
   
   const quotaCheck = await checkQuota(
     userId,
@@ -51,7 +52,7 @@ export async function generateScanOverview(
   )
 
   if (!quotaCheck.allowed) {
-    console.log('[AI-CHAT] Quota exceeded, using template fallback. Reason:', quotaCheck.reason)
+    console.log(`[AI-CHAT][${requestId}] Quota exceeded, using template fallback. Reason:`, quotaCheck.reason)
     return {
       message: generateTemplateOverview(scanContext),
       source: 'template',
@@ -63,7 +64,7 @@ export async function generateScanOverview(
 
   // Build prompt
   const prompt = buildScanOverviewPrompt(scanContext)
-  console.log('[AI-CHAT] Built overview prompt, calling AI...')
+  console.log(`[AI-CHAT][${requestId}] Built overview prompt, calling AI...`)
 
   try {
     // Use AI Router (existing infrastructure)
@@ -71,16 +72,17 @@ export async function generateScanOverview(
       prompt,
       [],
       userId,
-      'scan_overview'
+      'scan_overview',
+      requestId
     )
 
-    console.log('[AI-CHAT] Overview generated successfully via', response.provider, response.model)
+    console.log(`[AI-CHAT][${requestId}] Overview generated successfully via`, response.provider, response.model)
     return {
       ...response,
       duration: Date.now() - startTime,
     }
   } catch (error) {
-    console.error('[AI-CHAT] Scan overview generation failed:', error)
+    console.error(`[AI-CHAT][${requestId}] Scan overview generation failed:`, error)
     
     // Fallback to template
     return {
@@ -98,12 +100,13 @@ export async function generateChatResponse(
   userMessage: string,
   scanContext: ScanContext,
   conversationHistory: ChatMessage[],
-  userId: string
+  userId: string,
+  requestId: string = 'legacy'
 ): Promise<ChatResponse> {
   const startTime = Date.now()
-  console.log('[AI-CHAT] Generating chat response for user:', userId)
-  console.log('[AI-CHAT] User message:', userMessage.substring(0, 100))
-  console.log('[AI-CHAT] Conversation history length:', conversationHistory.length)
+  console.log(`[AI-CHAT][${requestId}] Generating chat response for user:`, userId)
+  console.log(`[AI-CHAT][${requestId}] User message:`, userMessage.substring(0, 100))
+  console.log(`[AI-CHAT][${requestId}] Conversation history length:`, conversationHistory.length)
 
   // Dynamic imports for server-only modules
   const { getUserPlan } = await import('./subscription')
@@ -111,7 +114,7 @@ export async function generateChatResponse(
 
   // Check quota
   const plan = await getUserPlan(userId)
-  console.log('[AI-CHAT] User plan:', plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
+  console.log(`[AI-CHAT][${requestId}] User plan:`, plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
   
   const quotaCheck = await checkQuota(
     userId,
@@ -120,7 +123,7 @@ export async function generateChatResponse(
   )
 
   if (!quotaCheck.allowed) {
-    console.log('[AI-CHAT] Quota exceeded. Reason:', quotaCheck.reason)
+    console.log(`[AI-CHAT][${requestId}] Quota exceeded. Reason:`, quotaCheck.reason)
     return {
       message: "You've reached your daily AI limit. Your quota resets tomorrow, or upgrade for more requests!",
       source: 'error',
@@ -134,8 +137,8 @@ export async function generateChatResponse(
   const systemPrompt = buildChatSystemPrompt(scanContext)
   const contextualPrompt = buildContextualPrompt(userMessage, scanContext)
   
-  console.log('[AI-CHAT] System prompt length:', systemPrompt.length)
-  console.log('[AI-CHAT] Contextual prompt:', contextualPrompt.substring(0, 150))
+  console.log(`[AI-CHAT][${requestId}] System prompt length:`, systemPrompt.length)
+  console.log(`[AI-CHAT][${requestId}] Contextual prompt:`, contextualPrompt.substring(0, 150))
 
   try {
     const response = await callAIChat(
@@ -145,18 +148,19 @@ export async function generateChatResponse(
         ...conversationHistory.slice(-10), // Last 10 messages for context
       ],
       userId,
-      'scan_chat'
+      'scan_chat',
+      requestId
     )
 
-    console.log('[AI-CHAT] Chat response generated successfully via', response.provider, response.model)
-    console.log('[AI-CHAT] Response length:', response.message.length)
+    console.log(`[AI-CHAT][${requestId}] Chat response generated successfully via`, response.provider, response.model)
+    console.log(`[AI-CHAT][${requestId}] Response length:`, response.message.length)
     
     return {
       ...response,
       duration: Date.now() - startTime,
     }
   } catch (error) {
-    console.error('[AI-CHAT] Chat response generation failed:', error)
+    console.error(`[AI-CHAT][${requestId}] Chat response generation failed:`, error)
     
     return {
       message: "I'm having trouble responding right now. Please try again in a moment.",
@@ -173,9 +177,10 @@ async function callAIChat(
   userPrompt: string,
   messages: ChatMessage[],
   userId: string,
-  feature: string
+  feature: string,
+  requestId: string
 ): Promise<Omit<ChatResponse, 'duration'>> {
-  console.log('[AI-CHAT] callAIChat invoked for feature:', feature)
+  console.log(`[AI-CHAT][${requestId}] callAIChat invoked for feature:`, feature)
   
   // Dynamic imports
   const { getUserPlan } = await import('./subscription')
@@ -194,19 +199,20 @@ async function callAIChat(
     content: userPrompt,
   })
   
-  console.log('[AI-CHAT] Total messages being sent to AI:', chatMessages.length)
-  console.log('[AI-CHAT] Calling aiRouter.generateChat...')
+  console.log(`[AI-CHAT][${requestId}] Total messages being sent to AI:`, chatMessages.length)
+  console.log(`[AI-CHAT][${requestId}] Calling aiRouter.generateChat...`)
 
   try {
     const response = await aiRouter.generateChat(chatMessages, {
       userId,
       plan,
       feature,
+      requestId, // Pass through requestId
     })
 
-    console.log('[AI-CHAT] AI Router response received')
-    console.log('[AI-CHAT] Provider:', response.provider, 'Model:', response.model)
-    console.log('[AI-CHAT] Message preview:', response.message.substring(0, 100))
+    console.log(`[AI-CHAT][${requestId}] AI Router response received`)
+    console.log(`[AI-CHAT][${requestId}] Provider:`, response.provider, 'Model:', response.model)
+    console.log(`[AI-CHAT][${requestId}] Message preview:`, response.message.substring(0, 100))
     
     return {
       message: response.message,
@@ -215,7 +221,7 @@ async function callAIChat(
       model: response.model,
     }
   } catch (error) {
-    console.error('[AI-CHAT] AI chat call failed:', error)
+    console.error(`[AI-CHAT][${requestId}] AI chat call failed:`, error)
     throw error
   }
 }

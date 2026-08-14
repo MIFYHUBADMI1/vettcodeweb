@@ -57,6 +57,7 @@ export default function AICoachPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const isLoadingOverviewRef = useRef(false)
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -72,30 +73,40 @@ export default function AICoachPage() {
   }, [input])
 
   // Load initial overview when scan loads
+  // FIXED: Prevent duplicate requests by using a ref to track in-flight request
   useEffect(() => {
-    if (scan && !hasLoadedOverview && messages.length === 0) {
+    if (scan && !hasLoadedOverview && messages.length === 0 && !isLoadingOverviewRef.current) {
+      isLoadingOverviewRef.current = true
       loadInitialOverview()
     }
-  }, [scan, hasLoadedOverview, messages.length])
+  }, [scan]) // FIXED: Only depend on scan, not messages.length or hasLoadedOverview
 
   const loadInitialOverview = async () => {
     if (!scan) return
 
+    console.log('[AI-PAGE] Loading initial overview for scanId:', scanId)
     setHasLoadedOverview(true)
     setIsGenerating(true)
 
     try {
+      console.log('[AI-PAGE] Fetching overview from API...')
       const response = await fetch(`/api/scans/${scanId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requestOverview: true }),
       })
 
+      console.log('[AI-PAGE] Overview API response status:', response.status)
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[AI-PAGE] Overview API error:', errorText)
         throw new Error('Failed to load overview')
       }
 
       const data = await response.json()
+      console.log('[AI-PAGE] Overview received. Source:', data.source, 'Provider:', data.provider)
+      console.log('[AI-PAGE] Message length:', data.message.length)
 
       setMessages([
         {
@@ -106,20 +117,28 @@ export default function AICoachPage() {
       ])
 
       if (data.quotaExceeded) {
+        console.log('[AI-PAGE] Quota exceeded')
         setQuotaExceeded(true)
       }
     } catch (err) {
-      console.error('Failed to load overview:', err)
+      console.error('[AI-PAGE] Failed to load overview:', err)
       // Don't show error, let user start conversation manually
     } finally {
       setIsGenerating(false)
+      isLoadingOverviewRef.current = false // FIXED: Reset the ref
     }
   }
 
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || input.trim()
     
-    if (!textToSend || isGenerating) return
+    if (!textToSend || isGenerating) {
+      console.log('[AI-PAGE] sendMessage skipped - empty or generating')
+      return
+    }
+
+    console.log('[AI-PAGE] Sending message:', textToSend.substring(0, 50))
+    console.log('[AI-PAGE] Conversation history length:', messages.length)
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -132,6 +151,7 @@ export default function AICoachPage() {
     setIsGenerating(true)
 
     try {
+      console.log('[AI-PAGE] Calling chat API...')
       const response = await fetch(`/api/scans/${scanId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,11 +161,18 @@ export default function AICoachPage() {
         }),
       })
 
+      console.log('[AI-PAGE] Chat API response status:', response.status)
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('[AI-PAGE] Chat API error:', errorText)
         throw new Error('Failed to get response')
       }
 
       const data = await response.json()
+      console.log('[AI-PAGE] Chat response received. Source:', data.source, 'Provider:', data.provider, 'Model:', data.model)
+      console.log('[AI-PAGE] Response message length:', data.message.length)
+      console.log('[AI-PAGE] Response preview:', data.message.substring(0, 100))
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',
@@ -156,10 +183,11 @@ export default function AICoachPage() {
       setMessages((prev) => [...prev, assistantMessage])
 
       if (data.quotaExceeded) {
+        console.log('[AI-PAGE] Quota exceeded after this request')
         setQuotaExceeded(true)
       }
     } catch (err) {
-      console.error('Chat error:', err)
+      console.error('[AI-PAGE] Chat error:', err)
       
       setMessages((prev) => [
         ...prev,

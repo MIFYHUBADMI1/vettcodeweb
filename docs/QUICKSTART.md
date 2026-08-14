@@ -1,3 +1,9 @@
+---
+title: Quick Start
+description: Get up and running with VettCode Web in 5 minutes
+order: 2
+---
+
 # VettCode Web Dashboard - Quick Start
 
 ## 5-Minute Setup

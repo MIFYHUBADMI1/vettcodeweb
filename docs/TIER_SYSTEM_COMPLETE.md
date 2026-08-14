@@ -1,3 +1,9 @@
+---
+title: Model Tier System
+description: Understanding VettCode's AI model tier system and intelligent routing
+order: 4
+---
+
 # VettCode Model Tier System - Complete Implementation ✅
 
 ## What We Built

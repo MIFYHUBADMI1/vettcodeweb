@@ -19,6 +19,7 @@ export interface AIRouterOptions {
   userId: string
   plan: SubscriptionPlan
   feature: string
+  requestId?: string // Optional correlation ID for logging
 }
 
 export interface AIRouterResult {
@@ -168,13 +169,15 @@ export class AIRouter {
   private getAvailableProviders(
     plan: SubscriptionPlan
   ): Array<{ provider: AIProvider; model: string }> {
-    const { getModelsForPlan, findBestModel } = require('./model-registry')
+    // Dynamic import for model registry
+    const modelRegistry = require('./model-registry')
+    const { getModelsForPlan, findBestModel } = modelRegistry
     
     // Get all models allowed for this plan (by tier)
     const allowedModels = getModelsForPlan(plan.allowedModelTiers)
     
     if (allowedModels.length === 0) {
-      console.warn('No models available for plan:', plan.id)
+      console.warn('[AI-ROUTER] No models available for plan:', plan.id)
       return []
     }
     
@@ -183,7 +186,7 @@ export class AIRouter {
     const bestModel = findBestModel(allowedModels, 'explanation', plan.priority >= 3)
     
     if (!bestModel) {
-      console.warn('No model found with explanation capability')
+      console.warn('[AI-ROUTER] No model found with explanation capability')
       return []
     }
     
@@ -201,8 +204,8 @@ export class AIRouter {
     
     // Add fallback models (other capable models from allowed tiers)
     const fallbackModels = allowedModels
-      .filter((m: AIModel) => m.id !== bestModel.id && m.capabilities.includes('explanation'))
-      .sort((a: AIModel, b: AIModel) => {
+      .filter((m: any) => m.id !== bestModel.id && m.capabilities.includes('explanation'))
+      .sort((a: any, b: any) => {
         // Sort by tier (descending) then cost (ascending)
         if (b.tier !== a.tier) return b.tier - a.tier
         const aCost = a.costPerInputToken + a.costPerOutputToken
@@ -211,7 +214,7 @@ export class AIRouter {
       })
       .slice(0, 3) // Max 3 fallbacks
     
-    fallbackModels.forEach((model: AIModel, index: number) => {
+    fallbackModels.forEach((model: any, index: number) => {
       const provider = this.registry.getProvider(model.provider)
       if (provider) {
         result.push({
@@ -364,41 +367,43 @@ export class AIRouter {
     options: AIRouterOptions
   ): Promise<AIRouterResult & { message: string }> {
     const startTime = Date.now()
-    const { plan } = options
+    const { plan, requestId = 'unknown' } = options
     
-    console.log('[AI-ROUTER] generateChat called for user:', options.userId)
-    console.log('[AI-ROUTER] Feature:', options.feature, 'Plan:', plan.id)
+    console.log(`[AI-ROUTER][${requestId}] generateChat called for user:`, options.userId)
+    console.log(`[AI-ROUTER][${requestId}] Feature:`, options.feature, 'Plan:', plan.id)
 
     // Get available providers
     const availableProviders = this.getAvailableProviders(plan)
     
-    console.log('[AI-ROUTER] Available providers:', availableProviders.length)
+    console.log(`[AI-ROUTER][${requestId}] Available providers:`, availableProviders.length)
     availableProviders.forEach(({ provider, model }) => {
-      console.log('[AI-ROUTER]   -', provider.name, '/', model)
+      console.log(`[AI-ROUTER][${requestId}]   -`, provider.name, '/', model)
     })
 
     if (availableProviders.length === 0) {
-      console.error('[AI-ROUTER] No AI providers available!')
+      console.error(`[AI-ROUTER][${requestId}] No AI providers available!`)
       throw new Error('No AI providers available')
     }
 
     // Try providers in priority order
     let lastError: Error | null = null
+    let attempt = 0
 
     for (const { provider, model } of availableProviders) {
+      attempt++
       try {
-        console.log('[AI-ROUTER] Trying provider:', provider.name, 'with model:', model)
+        console.log(`[AI-ROUTER][${requestId}] Attempt ${attempt}: Trying provider:`, provider.name, 'with model:', model)
         const message = await provider.generateChat(messages, model, plan.maxTokensPerRequest)
 
-        console.log('[AI-ROUTER] Success! Response received from', provider.name)
-        console.log('[AI-ROUTER] Response length:', message.length, 'characters')
+        console.log(`[AI-ROUTER][${requestId}] Success! Response received from`, provider.name)
+        console.log(`[AI-ROUTER][${requestId}] Response length:`, message.length, 'characters')
 
         // Estimate cost and track usage
         const inputTokens = this.estimateChatInputTokens(messages)
         const outputTokens = this.estimateChatOutputTokens(message)
         const estimatedCost = provider.estimateCost(inputTokens, outputTokens, model)
 
-        console.log('[AI-ROUTER] Tokens - Input:', inputTokens, 'Output:', outputTokens, 'Cost: $' + estimatedCost.toFixed(6))
+        console.log(`[AI-ROUTER][${requestId}] Tokens - Input:`, inputTokens, 'Output:', outputTokens, 'Cost: $' + estimatedCost.toFixed(6))
 
         // Track usage
         await trackAIUsage({
@@ -423,14 +428,27 @@ export class AIRouter {
           estimatedCost,
         }
       } catch (error) {
-        console.error(`[AI-ROUTER] Provider ${provider.name} chat failed:`, error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        console.error(`[AI-ROUTER][${requestId}] Attempt ${attempt} - Provider ${provider.name} chat failed:`, errorMessage)
+        
+        // Classify error type
+        if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit')) {
+          console.log(`[AI-ROUTER][${requestId}] RATE_LIMITED - Moving to next provider`)
+        } else if (errorMessage.includes('AI_PROVIDER_INVALID_RESPONSE')) {
+          console.log(`[AI-ROUTER][${requestId}] INVALID_RESPONSE - Moving to next provider`)
+        } else if (errorMessage.includes('404') || errorMessage.toLowerCase().includes('not found')) {
+          console.log(`[AI-ROUTER][${requestId}] MODEL_UNAVAILABLE - Moving to next provider`)
+        } else {
+          console.log(`[AI-ROUTER][${requestId}] PROVIDER_ERROR - Moving to next provider`)
+        }
+        
         lastError = error as Error
-        // Continue to next provider
+        // Continue to next provider (no retry on same model)
       }
     }
 
     // All providers failed
-    console.error('[AI-ROUTER] All providers failed!')
+    console.error(`[AI-ROUTER][${requestId}] All ${attempt} provider attempts failed!`)
     throw lastError || new Error('All AI providers failed')
   }
 

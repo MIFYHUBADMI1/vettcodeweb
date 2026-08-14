@@ -79,6 +79,32 @@ export class OpenRouterProvider implements AIProvider {
     }
 
     const data = await response.json()
+    
+    // FIXED: Validate response structure before accessing
+    if (!data || typeof data !== 'object') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Response is not an object')
+    }
+    
+    if (!data.choices || !Array.isArray(data.choices)) {
+      throw new Error(`AI_PROVIDER_INVALID_RESPONSE: Missing or invalid choices array. Response: ${JSON.stringify(data).substring(0, 200)}`)
+    }
+    
+    if (data.choices.length === 0) {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Choices array is empty')
+    }
+    
+    if (!data.choices[0] || typeof data.choices[0] !== 'object') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: First choice is invalid')
+    }
+    
+    if (!data.choices[0].message || typeof data.choices[0].message !== 'object') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Message object is missing or invalid')
+    }
+    
+    if (!data.choices[0].message.content || typeof data.choices[0].message.content !== 'string') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Message content is missing or not a string')
+    }
+    
     const content = data.choices[0].message.content
 
     return this.parseResponse(content)
@@ -111,6 +137,32 @@ export class OpenRouterProvider implements AIProvider {
     }
 
     const data = await response.json()
+    
+    // FIXED: Validate response structure before accessing
+    if (!data || typeof data !== 'object') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Response is not an object')
+    }
+    
+    if (!data.choices || !Array.isArray(data.choices)) {
+      throw new Error(`AI_PROVIDER_INVALID_RESPONSE: Missing or invalid choices array. Response: ${JSON.stringify(data).substring(0, 200)}`)
+    }
+    
+    if (data.choices.length === 0) {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Choices array is empty')
+    }
+    
+    if (!data.choices[0] || typeof data.choices[0] !== 'object') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: First choice is invalid')
+    }
+    
+    if (!data.choices[0].message || typeof data.choices[0].message !== 'object') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Message object is missing or invalid')
+    }
+    
+    if (!data.choices[0].message.content || typeof data.choices[0].message.content !== 'string') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Message content is missing or not a string')
+    }
+    
     return data.choices[0].message.content
   }
 
@@ -173,10 +225,13 @@ Rules:
   }
 
   estimateCost(inputTokens: number, outputTokens: number, model: string): number {
+    // FIXED: Free models should return $0
+    if (model.includes(':free')) {
+      return 0
+    }
+    
     // Rough estimates (OpenRouter pricing varies by model)
     const pricing: Record<string, { input: number; output: number }> = {
-      'google/gemma-2-9b-it:free': { input: 0, output: 0 },
-      'meta-llama/llama-3-8b-instruct:free': { input: 0, output: 0 },
       'anthropic/claude-3-haiku': { input: 0.25, output: 1.25 }, // per 1M tokens
       'anthropic/claude-3.5-sonnet': { input: 3.0, output: 15.0 },
       'openai/gpt-4o-mini': { input: 0.15, output: 0.6 },
@@ -241,6 +296,24 @@ export class GroqProvider implements AIProvider {
     }
 
     const data = await response.json()
+    
+    // FIXED: Validate response structure before accessing
+    if (!data || typeof data !== 'object') {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Response is not an object')
+    }
+    
+    if (!data.choices || !Array.isArray(data.choices)) {
+      throw new Error(`AI_PROVIDER_INVALID_RESPONSE: Missing or invalid choices array`)
+    }
+    
+    if (data.choices.length === 0) {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Choices array is empty')
+    }
+    
+    if (!data.choices[0]?.message?.content) {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Message content is missing')
+    }
+    
     const content = data.choices[0].message.content
 
     return this.parseResponse(content)
@@ -271,6 +344,12 @@ export class GroqProvider implements AIProvider {
     }
 
     const data = await response.json()
+    
+    // FIXED: Validate response structure
+    if (!data?.choices?.[0]?.message?.content) {
+      throw new Error('AI_PROVIDER_INVALID_RESPONSE: Missing message content')
+    }
+    
     return data.choices[0].message.content
   }
 
