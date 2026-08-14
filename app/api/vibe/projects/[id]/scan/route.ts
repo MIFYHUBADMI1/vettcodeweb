@@ -11,6 +11,10 @@ import { ScanModel } from '@/lib/models/Scan';
 import { runSecurityScan, linkScanToProject } from '@/lib/services/vibe-security-service';
 import { checkQuota } from '@/lib/usage-tracking';
 import { NextResponse } from 'next/server';
+import { ensureCLI } from './install-cli';
+
+export const maxDuration = 300; // 5 minutes (for Vercel Pro)
+export const dynamic = 'force-dynamic';
 
 export async function POST(
   request: Request,
@@ -38,6 +42,17 @@ export async function POST(
       );
     }
     
+    // Ensure CLI is installed (installs on first run)
+    try {
+      await ensureCLI();
+    } catch (error) {
+      console.error('[Scan API] CLI installation failed:', error);
+      return NextResponse.json(
+        { error: 'Security scanning service is initializing. Please try again in a moment.' },
+        { status: 503 }
+      );
+    }
+    
     // Run security scan
     const scanResult = await runSecurityScan(params.id, session.user.email);
     
@@ -49,7 +64,7 @@ export async function POST(
       scan: scanResult,
     });
   } catch (error) {
-    console.error('Failed to run security scan:', error);
+    console.error('[Scan API] Scan failed:', error);
     
     if (error instanceof Error) {
       return NextResponse.json(

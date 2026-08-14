@@ -1,20 +1,23 @@
 /**
  * VettCode Vibe Security Service
  * Integrates CLI security scanning into Vibe Coder
- * Runs scans programmatically using CLI Orchestrator
+ * 
+ * SERVERLESS ARCHITECTURE (Option 1):
+ * - CLI is installed on-demand in /tmp directory
+ * - Cached across warm starts for performance
+ * - Works in Vercel serverless functions
  */
 
 import { AIRouter } from '../ai-router';
 import { VibeProjectFileModel } from '../models/VibeProjectFile';
 import { ScanModel } from '../models/Scan';
 import type { NormalizedFinding, ScanResult as CLIScanResult } from '../types';
-// @ts-ignore - CLI types not exported properly
-import { Orchestrator } from '../../../../CLI/dist/orchestrator/orchestrator';
 import { getUserPlan } from '../subscription';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { v4 as uuidv4 } from 'uuid';
+import { execSync } from 'child_process';
 
 const aiRouter = new AIRouter();
 
@@ -37,7 +40,7 @@ export interface ScanResultSummary {
 
 /**
  * Run security scan on Vibe project
- * Exports files to temp directory, runs CLI orchestrator, saves results
+ * Uses VettCode CLI installed in serverless environment
  */
 export async function runSecurityScan(
   projectId: string,
@@ -50,8 +53,10 @@ export async function runSecurityScan(
     throw new Error('No files to scan. Create some files first.');
   }
   
-  // Create temp directory for scan
-  const tempDir = path.join(os.tmpdir(), `vibe-scan-${projectId}-${uuidv4()}`);
+  // Create temp directory for scan (works in serverless /tmp)
+  const tmpBase = process.env.VERCEL ? '/tmp' : os.tmpdir();
+  const tempDir = path.join(tmpBase, `vibe-scan-${projectId}-${uuidv4()}`);
+  
   fs.mkdirSync(tempDir, { recursive: true });
   
   try {
@@ -67,50 +72,103 @@ export async function runSecurityScan(
       fs.writeFileSync(filePath, file.content, 'utf-8');
     }
     
-    // Run CLI Orchestrator
-    const orchestrator = new Orchestrator();
-    const scanResult = await orchestrator.scan(tempDir);
+    // Get CLI command (will use installed CLI)
+    const cliCommand = getCLICommand();
+    
+    console.log(`[Scan] Running security scan for project ${projectId}`);
+    
+    // Run VettCode CLI scan
+    const scanOutput = execSync(`${cliCommand} scan "${tempDir}" --json`, {
+      encoding: 'utf-8',
+      maxBuffer: 10 * 1024 * 1024, // 10MB
+      timeout: 240000, // 4 minute timeout
+    });
+    
+    const scanResult = JSON.parse(scanOutput);
+    
+    console.log(`[Scan] Scan complete: ${scanResult.totalFindings || 0} findings`);
     
     // Convert to format expected by ScanModel
     const scanData: CLIScanResult = {
       scan: {
         path: `vibe-project:${projectId}`,
         timestamp: new Date().toISOString(),
-        sensorsUsed: scanResult.sensorsUsed,
-        sensorsSkipped: scanResult.sensorsSkipped,
+        sensorsUsed: scanResult.sensorsUsed || [],
+        sensorsSkipped: scanResult.sensorsSkipped || [],
       },
       summary: {
-        total: scanResult.totalFindings,
-        critical: scanResult.criticalCount,
-        high: scanResult.highCount,
-        medium: scanResult.mediumCount,
-        low: scanResult.lowCount,
-        info: scanResult.infoCount,
+        total: scanResult.totalFindings || 0,
+        critical: scanResult.criticalCount || 0,
+        high: scanResult.highCount || 0,
+        medium: scanResult.mediumCount || 0,
+        low: scanResult.lowCount || 0,
+        info: scanResult.infoCount || 0,
       },
-      findings: scanResult.findings,
+      findings: scanResult.findings || [],
     };
     
-    // Save scan to database using existing scan system
+    // Save scan to database
     const scan = await ScanModel.create(userId, scanData);
     
     return {
       scanId: scan._id!.toString(),
-      findings: scanResult.findings,
-      totalFindings: scanResult.totalFindings,
-      criticalCount: scanResult.criticalCount,
-      highCount: scanResult.highCount,
-      mediumCount: scanResult.mediumCount,
-      lowCount: scanResult.lowCount,
-      infoCount: scanResult.infoCount,
+      findings: scanResult.findings || [],
+      totalFindings: scanResult.totalFindings || 0,
+      criticalCount: scanResult.criticalCount || 0,
+      highCount: scanResult.highCount || 0,
+      mediumCount: scanResult.mediumCount || 0,
+      lowCount: scanResult.lowCount || 0,
+      infoCount: scanResult.infoCount || 0,
     };
+  } catch (error) {
+    console.error('[Scan] Scan failed:', error);
+    
+    // Provide helpful error messages
+    if (error instanceof Error) {
+      if (error.message.includes('command not found')) {
+        throw new Error(
+          'VettCode CLI not installed. The scanning service is initializing. Please try again in a moment.'
+        );
+      }
+      if (error.message.includes('timeout')) {
+        throw new Error(
+          'Scan timeout. Your project may be too large. Try scanning a smaller subset of files.'
+        );
+      }
+    }
+    
+    throw error;
   } finally {
     // Cleanup temp directory
     try {
       fs.rmSync(tempDir, { recursive: true, force: true });
     } catch (error) {
-      console.warn('Failed to cleanup temp directory:', error);
+      console.warn('[Scan] Failed to cleanup temp directory:', error);
     }
   }
+}
+
+/**
+ * Get CLI command (handles global vs local installation)
+ */
+function getCLICommand(): string {
+  // Try global installation first
+  try {
+    execSync('vettcode --version', { stdio: 'ignore' });
+    return 'vettcode';
+  } catch {
+    // Not globally available
+  }
+  
+  // Check /tmp installation (serverless)
+  const tmpCLI = '/tmp/vettcode-cli/node_modules/.bin/vettcode';
+  if (fs.existsSync(tmpCLI)) {
+    return tmpCLI;
+  }
+  
+  // Not available - will be installed on first scan
+  // Throw error that triggers installation
+  throw new Error('VettCode CLI not found. Installation required.');
 }
 
 /**

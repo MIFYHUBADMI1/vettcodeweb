@@ -38,4 +38,12 @@ export const queryKeys = {
   // Dashboard
   dashboard: (userId?: string) => ['dashboard', userId] as const,
   stats: (userId?: string) => ['stats', userId] as const,
+  
+  // Vibe Coder
+  vibeProjects: (userId?: string) => ['vibe', 'projects', userId] as const,
+  vibeProject: (userId: string | undefined, projectId: string) => ['vibe', 'project', userId, projectId] as const,
+  vibeProjectFiles: (userId: string | undefined, projectId: string) => ['vibe', 'files', userId, projectId] as const,
+  vibeFileTree: (userId: string | undefined, projectId: string) => ['vibe', 'fileTree', userId, projectId] as const,
+  vibeChat: (userId: string | undefined, projectId: string) => ['vibe', 'chat', userId, projectId] as const,
+  vibeStats: (userId?: string) => ['vibe', 'stats', userId] as const,
 }

@@ -16,9 +16,9 @@ export default function QuickActionsCard() {
       description: 'Build with AI',
       color: 'from-purple-600 to-purple-700',
       hoverColor: 'hover:from-purple-700 hover:to-purple-800',
-      href: null,
-      onClick: () => alert('VettCode Vibe Coder coming soon!'),
-      comingSoon: true,
+      href: '/dashboard/vibe',
+      onClick: null,
+      comingSoon: false,
     },
     {
       icon: Terminal,
