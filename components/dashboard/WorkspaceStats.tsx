@@ -1,17 +1,22 @@
 'use client'
 
 import { FolderKanban, Shield, Rocket } from 'lucide-react'
+import Link from 'next/link'
 
 interface WorkspaceStatsProps {
   projectCount: number
   securityStatus: 'none' | 'unknown' | 'secure' | 'issues'
   deploymentCount: number
+  scanCount?: number
+  isLoading?: boolean
 }
 
 export default function WorkspaceStats({ 
   projectCount, 
   securityStatus,
-  deploymentCount 
+  deploymentCount,
+  scanCount = 0,
+  isLoading = false
 }: WorkspaceStatsProps) {
   const getSecurityDisplay = () => {
     switch (securityStatus) {
@@ -38,6 +43,22 @@ export default function WorkspaceStats({
     }
   }
 
+  const getSecuritySubtext = () => {
+    if (isLoading) return 'Loading...'
+    
+    switch (securityStatus) {
+      case 'none':
+        return 'Run your first project scan'
+      case 'secure':
+        return `${scanCount} ${scanCount === 1 ? 'scan' : 'scans'} completed - all good!`
+      case 'issues':
+        return `${scanCount} ${scanCount === 1 ? 'scan' : 'scans'} - review needed`
+      case 'unknown':
+      default:
+        return 'Status unknown'
+    }
+  }
+
   return (
     <div>
       <h2 className="text-xl font-bold text-white mb-4">Your workspace</h2>
@@ -58,20 +79,33 @@ export default function WorkspaceStats({
         </div>
 
         {/* Security */}
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-colors">
+        <Link
+          href="/dashboard/scans"
+          className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-purple-500/50 transition-all cursor-pointer group"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
-              <Shield className="w-6 h-6 text-blue-400" />
+              <Shield className="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" />
             </div>
           </div>
-          <div className={`text-3xl font-bold mb-1 ${getSecurityColor()}`}>
-            {getSecurityDisplay()}
-          </div>
-          <div className="text-sm text-gray-400 mb-3">Security</div>
-          {securityStatus === 'none' && (
-            <div className="text-xs text-gray-500">Run your first project scan</div>
+          {isLoading ? (
+            <>
+              <div className="h-8 bg-gray-700 rounded w-2/3 mb-2 animate-pulse" />
+              <div className="h-4 bg-gray-700 rounded w-1/2 mb-3 animate-pulse" />
+              <div className="h-3 bg-gray-700 rounded w-3/4 animate-pulse" />
+            </>
+          ) : (
+            <>
+              <div className={`text-3xl font-bold mb-1 ${getSecurityColor()} group-hover:text-purple-400 transition-colors`}>
+                {getSecurityDisplay()}
+              </div>
+              <div className="text-sm text-gray-400 mb-3">Security</div>
+              <div className="text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
+                {getSecuritySubtext()}
+              </div>
+            </>
           )}
-        </div>
+        </Link>
 
         {/* Deployments */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-colors">

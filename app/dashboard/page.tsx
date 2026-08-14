@@ -4,7 +4,6 @@ import { authOptions } from '@/lib/auth'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import DashboardWelcome from '@/components/dashboard/DashboardWelcome'
 import EmptyWorkspace from '@/components/dashboard/EmptyWorkspace'
-import WorkspaceStats from '@/components/dashboard/WorkspaceStats'
 import NextActionCard from '@/components/dashboard/NextActionCard'
 import DashboardContent from '@/components/dashboard/DashboardContent'
 
@@ -42,14 +41,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Workspace Overview */}
-        <WorkspaceStats 
-          projectCount={projects.length}
-          securityStatus={projects.length === 0 ? 'none' : 'unknown'}
-          deploymentCount={0}
-        />
-
-        {/* VettCode Ecosystem Dashboard - Shows even without projects */}
+        {/* VettCode Ecosystem Dashboard - Shows scans, AI usage, and actions */}
         <DashboardContent userId={session.user.id} />
 
         {/* Next Action */}

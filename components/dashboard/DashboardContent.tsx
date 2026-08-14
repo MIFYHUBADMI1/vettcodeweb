@@ -12,6 +12,7 @@ import RecentScansCard from './RecentScansCard'
 import SecurityOverviewCard from './SecurityOverviewCard'
 import AIUsageCard from './AIUsageCard'
 import QuickActionsCard from './QuickActionsCard'
+import WorkspaceStats from './WorkspaceStats'
 
 interface DashboardContentProps {
   userId: string
@@ -23,6 +24,19 @@ export default function DashboardContent({ userId }: DashboardContentProps) {
   const [usageLoading, setUsageLoading] = useState(true)
 
   const scans = scansData?.scans || []
+
+  // Calculate security status from scans
+  const getSecurityStatus = (): 'none' | 'unknown' | 'secure' | 'issues' => {
+    if (scans.length === 0) return 'none'
+    
+    const hasCritical = scans.some(s => s.criticalCount > 0)
+    const hasHigh = scans.some(s => s.highCount > 0)
+    const hasAnyIssues = scans.some(s => s.totalFindings > 0)
+    
+    if (hasCritical || hasHigh) return 'issues'
+    if (hasAnyIssues) return 'issues'
+    return 'secure'
+  }
 
   // Fetch AI usage data
   useEffect(() => {
@@ -47,6 +61,15 @@ export default function DashboardContent({ userId }: DashboardContentProps) {
 
   return (
     <div className="space-y-6">
+      {/* Workspace Stats - Now with real scan data */}
+      <WorkspaceStats
+        projectCount={0} // TODO: Real project count when backend ready
+        securityStatus={getSecurityStatus()}
+        deploymentCount={0}
+        scanCount={scans.length}
+        isLoading={scansLoading}
+      />
+
       {/* Quick Actions - Always visible */}
       <QuickActionsCard />
 

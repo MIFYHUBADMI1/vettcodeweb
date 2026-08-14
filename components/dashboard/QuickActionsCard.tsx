@@ -58,13 +58,39 @@ export default function QuickActionsCard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {actions.map((action) => {
           const Icon = action.icon
-          const Component = action.href ? Link : 'button'
+          const baseClasses = `relative p-4 bg-gradient-to-br ${action.color} ${action.hoverColor} rounded-xl transition-all transform hover:scale-105 shadow-lg text-left group block`
           
+          // Render as Link if href exists
+          if (action.href) {
+            return (
+              <Link
+                key={action.label}
+                href={action.href}
+                className={baseClasses}
+              >
+                {action.comingSoon && (
+                  <div className="absolute top-2 right-2">
+                    <span className="text-[10px] px-2 py-0.5 bg-white/20 rounded-full font-semibold">
+                      Soon
+                    </span>
+                  </div>
+                )}
+                
+                <Icon className="w-8 h-8 mb-3 opacity-90" />
+                <div>
+                  <div className="font-semibold mb-0.5">{action.label}</div>
+                  <div className="text-xs opacity-80">{action.description}</div>
+                </div>
+              </Link>
+            )
+          }
+          
+          // Render as button if onClick exists
           return (
-            <Component
+            <button
               key={action.label}
-              {...(action.href ? { href: action.href } : { onClick: action.onClick })}
-              className={`relative p-4 bg-gradient-to-br ${action.color} ${action.hoverColor} rounded-xl transition-all transform hover:scale-105 shadow-lg text-left group block`}
+              onClick={action.onClick || undefined}
+              className={baseClasses}
             >
               {action.comingSoon && (
                 <div className="absolute top-2 right-2">
@@ -79,7 +105,7 @@ export default function QuickActionsCard() {
                 <div className="font-semibold mb-0.5">{action.label}</div>
                 <div className="text-xs opacity-80">{action.description}</div>
               </div>
-            </Component>
+            </button>
           )
         })}
       </div>
