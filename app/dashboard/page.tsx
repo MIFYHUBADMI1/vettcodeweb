@@ -6,6 +6,7 @@ import DashboardWelcome from '@/components/dashboard/DashboardWelcome'
 import EmptyWorkspace from '@/components/dashboard/EmptyWorkspace'
 import WorkspaceStats from '@/components/dashboard/WorkspaceStats'
 import NextActionCard from '@/components/dashboard/NextActionCard'
+import DashboardContent from '@/components/dashboard/DashboardContent'
 
 export const metadata = {
   title: 'Dashboard - VettCode',
@@ -29,7 +30,7 @@ export default async function DashboardPage() {
         {/* Welcome Header */}
         <DashboardWelcome name={session.user.name || 'Developer'} />
 
-        {/* Empty State or Projects */}
+        {/* Empty State or Dashboard Content */}
         {!hasProjects ? (
           <EmptyWorkspace />
         ) : (
@@ -47,6 +48,9 @@ export default async function DashboardPage() {
           securityStatus={projects.length === 0 ? 'none' : 'unknown'}
           deploymentCount={0}
         />
+
+        {/* VettCode Ecosystem Dashboard - Shows even without projects */}
+        <DashboardContent userId={session.user.id} />
 
         {/* Next Action */}
         <NextActionCard 
