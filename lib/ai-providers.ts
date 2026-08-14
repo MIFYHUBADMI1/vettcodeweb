@@ -412,9 +412,9 @@ Rules:
   }
 
   estimateCost(inputTokens: number, outputTokens: number, model: string): number {
-    // Groq pricing (per 1M tokens)
+    // Groq pricing (per 1M tokens) - Updated for current models
     const pricing: Record<string, { input: number; output: number }> = {
-      'llama-3.1-70b-versatile': { input: 0.59, output: 0.79 },
+      'llama-3.3-70b-versatile': { input: 0.59, output: 0.79 },
       'llama-3.1-8b-instant': { input: 0.05, output: 0.08 },
       'mixtral-8x7b-32768': { input: 0.24, output: 0.24 },
       'gemma2-9b-it': { input: 0.20, output: 0.20 },

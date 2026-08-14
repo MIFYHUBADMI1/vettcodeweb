@@ -320,8 +320,8 @@ export const MODEL_REGISTRY: AIModel[] = [
   // ============================================================================
   
   {
-    id: 'llama-3.1-70b-versatile',
-    name: 'Llama 3.1 70B',
+    id: 'llama-3.3-70b-versatile',
+    name: 'Llama 3.3 70B',
     provider: 'groq',
     tier: 3,
     capabilities: ['explanation', 'code_analysis', 'reasoning', 'security', 'fix_generation'],
@@ -336,7 +336,23 @@ export const MODEL_REGISTRY: AIModel[] = [
   },
   
   {
-    id: 'mixtral-8x7b-groq',
+    id: 'llama-3.1-8b-instant',
+    name: 'Llama 3.1 8B Instant',
+    provider: 'groq',
+    tier: 2,
+    capabilities: ['explanation', 'code_analysis', 'reasoning'],
+    costClass: 'low',
+    maxTokens: 8192,
+    contextWindow: 131072,
+    latency: 'fast',
+    reliability: 'high',
+    costPerInputToken: 0.05,
+    costPerOutputToken: 0.08,
+    enabled: true,
+  },
+  
+  {
+    id: 'mixtral-8x7b-32768',
     name: 'Mixtral 8x7B',
     provider: 'groq',
     tier: 3,
@@ -348,6 +364,22 @@ export const MODEL_REGISTRY: AIModel[] = [
     reliability: 'high',
     costPerInputToken: 0.24,
     costPerOutputToken: 0.24,
+    enabled: true,
+  },
+  
+  {
+    id: 'gemma2-9b-it',
+    name: 'Gemma 2 9B',
+    provider: 'groq',
+    tier: 2,
+    capabilities: ['explanation', 'code_analysis'],
+    costClass: 'low',
+    maxTokens: 8192,
+    contextWindow: 8192,
+    latency: 'fast',
+    reliability: 'high',
+    costPerInputToken: 0.20,
+    costPerOutputToken: 0.20,
     enabled: true,
   },
   
