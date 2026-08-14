@@ -2,8 +2,38 @@
  * VettCode Web Dashboard Types
  */
 
+// Re-export CLI types for consistency
+export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+export type FindingCategory = 'CODE' | 'DEPENDENCY' | 'SECRET' | 'INFRASTRUCTURE' | 'CONFIG';
+export type SensorType = 'semgrep' | 'osv-scanner' | 'gitleaks' | 'trivy' | 'codeql';
+
+// Normalized finding (matches CLI structure)
+export interface NormalizedFinding {
+  id: string;
+  sensor: SensorType;
+  category: FindingCategory;
+  severity: Severity;
+  title: string;
+  message: string;
+  filePath: string;
+  lineNumber?: number;
+  codeSnippet?: string;
+  cwe?: string[];
+  cve?: string;
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  confidenceScore?: number;
+  references?: string[];
+  metadata?: {
+    ruleId?: string;
+    packageName?: string;
+    packageVersion?: string;
+    secretType?: string;
+    references?: string[];
+    [key: string]: any;
+  };
+}
+
 export interface ScanResult {
-  version: string
   scan: {
     path: string
     timestamp: string
@@ -18,9 +48,10 @@ export interface ScanResult {
     low: number
     info: number
   }
-  findings: Finding[]
+  findings: NormalizedFinding[]
 }
 
+// Legacy Finding type (for backward compatibility with existing code)
 export interface Finding {
   id: number
   severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO'
