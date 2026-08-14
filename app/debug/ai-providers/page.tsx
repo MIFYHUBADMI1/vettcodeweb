@@ -6,10 +6,6 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Loader2, CheckCircle2, XCircle, AlertCircle, RefreshCw } from 'lucide-react'
 
 interface DebugResponse {
   status: string
@@ -88,125 +84,133 @@ export default function AIProviderDebugPage() {
 
   if (loading && !data) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-          <span className="ml-2 text-gray-400">Loading provider status...</span>
+      <div className="min-h-screen bg-gray-950 text-white">
+        <div className="container mx-auto py-8 px-4">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+            <span className="ml-3 text-gray-400">Loading provider status...</span>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">
-          AI Provider Diagnostic
-        </h1>
-        <p className="text-gray-400">
-          Debug and test your AI provider configuration
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-950 text-white">
+      <div className="container mx-auto py-8 px-4 max-w-6xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">
+            AI Provider Diagnostic
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Debug and test your AI provider configuration
+          </p>
+        </div>
 
-      {error && (
-        <Card className="mb-6 border-red-500 bg-red-950/20">
-          <CardContent className="pt-6">
+        {/* Error Banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-950/30 border border-red-500 rounded-lg">
             <div className="flex items-center gap-2 text-red-400">
-              <XCircle className="h-5 w-5" />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
               <span>{error}</span>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Actions */}
-      <div className="flex gap-3 mb-6">
-        <Button
-          onClick={loadStatus}
-          disabled={loading}
-          variant="outline"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-          Refresh Status
-        </Button>
-        
-        <Button
-          onClick={runTests}
-          disabled={testing || !data?.providers?.totalAvailable}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          {testing ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Testing...
-            </>
-          ) : (
-            <>Test API Calls</>
-          )}
-        </Button>
-      </div>
+        {/* Actions */}
+        <div className="flex gap-3 mb-6">
+          <button
+            onClick={loadStatus}
+            disabled={loading}
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
+            <span className="flex items-center gap-2">
+              <svg className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh Status
+            </span>
+          </button>
+          
+          <button
+            onClick={runTests}
+            disabled={testing || !data?.providers?.totalAvailable}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors disabled:opacity-50"
+          >
+            {testing ? (
+              <span className="flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Testing...
+              </span>
+            ) : (
+              'Test API Calls'
+            )}
+          </button>
+        </div>
 
-      {data && (
-        <>
-          {/* Status Message */}
-          <Card className="mb-6">
-            <CardContent className="pt-6">
+        {data && (
+          <>
+            {/* Status Message */}
+            <div className="mb-6 p-6 bg-gray-900 border border-gray-800 rounded-lg">
               <div className="flex items-center gap-3">
                 {data.status === 'ok' ? (
-                  <CheckCircle2 className="h-6 w-6 text-green-500" />
+                  <svg className="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 ) : (
-                  <AlertCircle className="h-6 w-6 text-yellow-500" />
+                  <svg className="h-6 w-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
                 )}
                 <div>
-                  <p className="text-lg font-semibold text-white">{data.message}</p>
+                  <p className="text-lg font-semibold">{data.message}</p>
                   {data.hint && (
                     <p className="text-sm text-gray-400 mt-1">{data.hint}</p>
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Environment Variables */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Environment Variables</CardTitle>
-              <CardDescription>
-                Check which API keys and secrets are configured
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            {/* Environment Variables */}
+            <div className="mb-6 bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-2">Environment Variables</h2>
+              <p className="text-gray-400 text-sm mb-4">Check which API keys and secrets are configured</p>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {Object.entries(data.environment).map(([key, value]) => (
                   <div key={key} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                     <span className="font-mono text-sm text-gray-300">{key}</span>
-                    <Badge variant={value.includes('SET') || value.includes('✓') ? 'default' : 'destructive'}>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded ${
+                      value.includes('SET') || value.includes('✓') 
+                        ? 'bg-green-900/30 text-green-400 border border-green-700' 
+                        : 'bg-red-900/30 text-red-400 border border-red-700'
+                    }`}>
                       {value}
-                    </Badge>
+                    </span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Provider Status */}
-          {data.providers && (
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>
-                  Available Providers
-                  <Badge className="ml-3" variant="outline">
+            {/* Provider Status */}
+            {data.providers && (
+              <div className="mb-6 bg-gray-900 border border-gray-800 rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-xl font-bold">Available Providers</h2>
+                  <span className="px-3 py-1 bg-purple-900/30 text-purple-400 border border-purple-700 rounded-full text-sm font-semibold">
                     {data.providers.totalAvailable}
-                  </Badge>
-                </CardTitle>
-                <CardDescription>
-                  Providers registered and ready to handle requests
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                  </span>
+                </div>
+                <p className="text-gray-400 text-sm mb-4">Providers registered and ready to handle requests</p>
+                
                 {data.providers.totalAvailable === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    <AlertCircle className="h-12 w-12 mx-auto mb-3 text-yellow-500" />
+                  <div className="text-center py-8 text-gray-400 bg-gray-800/30 rounded-lg">
+                    <svg className="h-12 w-12 mx-auto mb-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
                     <p className="font-semibold">No providers available</p>
                     <p className="text-sm mt-1">Set OPENROUTER_API_KEY or GROQ_API_KEY in environment variables</p>
                   </div>
@@ -215,55 +219,62 @@ export default function AIProviderDebugPage() {
                     {data.providers.providers.map((provider) => (
                       <div key={provider.name} className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                         <div className="flex items-center gap-3">
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          <span className="font-semibold text-white capitalize">{provider.name}</span>
+                          <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="font-semibold capitalize">{provider.name}</span>
                         </div>
-                        <Badge variant="default">Ready</Badge>
+                        <span className="px-3 py-1 bg-green-900/30 text-green-400 border border-green-700 rounded text-sm font-semibold">
+                          Ready
+                        </span>
                       </div>
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
 
-          {/* Test Results */}
-          {data.testResults && (
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>
-                  API Test Results
+            {/* Test Results */}
+            {data.testResults && (
+              <div className="mb-6 bg-gray-900 border border-gray-800 rounded-lg p-6">
+                <div className="mb-4">
+                  <h2 className="text-xl font-bold">API Test Results</h2>
                   {data.summary && (
-                    <span className="ml-3 text-sm font-normal text-gray-400">
+                    <p className="text-sm text-gray-400 mt-1">
                       {data.summary.passed} passed · {data.summary.failed} failed
-                    </span>
+                    </p>
                   )}
-                </CardTitle>
-                <CardDescription>
-                  Actual API calls to each provider
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </div>
+                <p className="text-gray-400 text-sm mb-4">Actual API calls to each provider</p>
+                
                 <div className="space-y-4">
                   {data.testResults.map((result, index) => (
                     <div key={index} className="p-4 bg-gray-800/50 rounded-lg border border-gray-700">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           {result.success ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                           ) : (
-                            <XCircle className="h-5 w-5 text-red-500" />
+                            <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                           )}
                           <div>
-                            <p className="font-semibold text-white capitalize">{result.provider}</p>
+                            <p className="font-semibold capitalize">{result.provider}</p>
                             {result.model && (
                               <p className="text-xs text-gray-400 font-mono">{result.model}</p>
                             )}
                           </div>
                         </div>
-                        <Badge variant={result.success ? 'default' : 'destructive'}>
+                        <span className={`px-3 py-1 rounded text-sm font-semibold ${
+                          result.success 
+                            ? 'bg-green-900/30 text-green-400 border border-green-700' 
+                            : 'bg-red-900/30 text-red-400 border border-red-700'
+                        }`}>
                           {result.duration}ms
-                        </Badge>
+                        </span>
                       </div>
                       
                       {result.success ? (
@@ -283,56 +294,51 @@ export default function AIProviderDebugPage() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
 
-          {/* Model Registry */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Model Registry</CardTitle>
-              <CardDescription>
-                Available AI models in the system
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Model Registry */}
+            <div className="mb-6 bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h2 className="text-xl font-bold mb-2">Model Registry</h2>
+              <p className="text-gray-400 text-sm mb-4">Available AI models in the system</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="p-4 bg-purple-950/20 rounded-lg border border-purple-800">
                   <p className="text-sm text-gray-400 mb-1">Total Models</p>
-                  <p className="text-2xl font-bold text-white">{data.modelRegistry.totalModels}</p>
+                  <p className="text-2xl font-bold">{data.modelRegistry.totalModels}</p>
                 </div>
                 
                 <div className="p-4 bg-green-950/20 rounded-lg border border-green-800">
                   <p className="text-sm text-gray-400 mb-1">Free Models</p>
-                  <p className="text-2xl font-bold text-white">{data.modelRegistry.byCost.free}</p>
+                  <p className="text-2xl font-bold">{data.modelRegistry.byCost.free}</p>
                 </div>
                 
                 <div className="p-4 bg-blue-950/20 rounded-lg border border-blue-800">
                   <p className="text-sm text-gray-400 mb-1">Paid Models</p>
-                  <p className="text-2xl font-bold text-white">{data.modelRegistry.byCost.paid}</p>
+                  <p className="text-2xl font-bold">{data.modelRegistry.byCost.paid}</p>
                 </div>
               </div>
               
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {Object.entries(data.modelRegistry.byTier).map(([tier, count]) => (
                   <div key={tier} className="p-3 bg-gray-800/50 rounded text-center">
                     <p className="text-xs text-gray-400 uppercase">{tier}</p>
-                    <p className="text-lg font-semibold text-white">{count}</p>
+                    <p className="text-lg font-semibold">{count}</p>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Debug Info */}
-          <div className="mt-6 p-4 bg-gray-900/50 rounded-lg border border-gray-800">
-            <p className="text-xs text-gray-500">
-              Timestamp: {new Date(data.timestamp).toLocaleString()} · 
-              Duration: {data.duration}ms
-            </p>
-          </div>
-        </>
-      )}
+            {/* Debug Info */}
+            <div className="p-4 bg-gray-900/50 rounded-lg border border-gray-800">
+              <p className="text-xs text-gray-500">
+                Timestamp: {new Date(data.timestamp).toLocaleString()} · 
+                Duration: {data.duration}ms
+              </p>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
