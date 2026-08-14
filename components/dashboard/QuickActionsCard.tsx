@@ -5,6 +5,7 @@
 
 'use client'
 
+import Link from 'next/link'
 import { Code, Shield, Rocket, BookOpen, Terminal } from 'lucide-react'
 
 export default function QuickActionsCard() {
@@ -15,6 +16,7 @@ export default function QuickActionsCard() {
       description: 'Build with AI',
       color: 'from-purple-600 to-purple-700',
       hoverColor: 'hover:from-purple-700 hover:to-purple-800',
+      href: null,
       onClick: () => alert('VettCode Vibe Coder coming soon!'),
       comingSoon: true,
     },
@@ -24,7 +26,8 @@ export default function QuickActionsCard() {
       description: 'Check your code',
       color: 'from-blue-600 to-blue-700',
       hoverColor: 'hover:from-blue-700 hover:to-blue-800',
-      onClick: () => alert('CLI integration: Run "vettcode scan ." in your project'),
+      href: '/setup/security-scan',
+      onClick: null,
       comingSoon: false,
     },
     {
@@ -33,6 +36,7 @@ export default function QuickActionsCard() {
       description: 'Ship your project',
       color: 'from-orange-600 to-orange-700',
       hoverColor: 'hover:from-orange-700 hover:to-orange-800',
+      href: null,
       onClick: () => alert('Deployment integration coming soon!'),
       comingSoon: true,
     },
@@ -42,7 +46,8 @@ export default function QuickActionsCard() {
       description: 'AI Coach',
       color: 'from-green-600 to-green-700',
       hoverColor: 'hover:from-green-700 hover:to-green-800',
-      onClick: () => alert('VettCode Coach available in scan reports!'),
+      href: '/dashboard/scans',
+      onClick: null,
       comingSoon: false,
     },
   ]
@@ -53,11 +58,13 @@ export default function QuickActionsCard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {actions.map((action) => {
           const Icon = action.icon
+          const Component = action.href ? Link : 'button'
+          
           return (
-            <button
+            <Component
               key={action.label}
-              onClick={action.onClick}
-              className={`relative p-4 bg-gradient-to-br ${action.color} ${action.hoverColor} rounded-xl transition-all transform hover:scale-105 shadow-lg text-left group`}
+              {...(action.href ? { href: action.href } : { onClick: action.onClick })}
+              className={`relative p-4 bg-gradient-to-br ${action.color} ${action.hoverColor} rounded-xl transition-all transform hover:scale-105 shadow-lg text-left group block`}
             >
               {action.comingSoon && (
                 <div className="absolute top-2 right-2">
@@ -72,7 +79,7 @@ export default function QuickActionsCard() {
                 <div className="font-semibold mb-0.5">{action.label}</div>
                 <div className="text-xs opacity-80">{action.description}</div>
               </div>
-            </button>
+            </Component>
           )
         })}
       </div>

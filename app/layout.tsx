@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Providers from '@/components/Providers'
+import ToastProvider from '@/components/ToastProvider'
 
 export const metadata: Metadata = {
   title: 'VettCode - Build. Secure. Ship.',
@@ -18,6 +19,7 @@ export default function RootLayout({
       <body className="bg-gray-50">
         <Providers>
           {children}
+          <ToastProvider />
         </Providers>
       </body>
     </html>
