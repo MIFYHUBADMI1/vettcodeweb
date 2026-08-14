@@ -181,18 +181,27 @@ export async function getUserPlan(userId?: string): Promise<SubscriptionPlan> {
     return SUBSCRIPTION_PLANS.free
   }
 
+  // Validate ObjectId format before querying MongoDB
+  // MongoDB ObjectId must be a 24-character hex string
+  const objectIdRegex = /^[0-9a-fA-F]{24}$/
+  if (!objectIdRegex.test(userId)) {
+    console.warn(`[SUBSCRIPTION] Invalid ObjectId format: ${userId}. Falling back to free plan.`)
+    return SUBSCRIPTION_PLANS.free
+  }
+
   // Import dynamically to avoid circular dependency
   const { UserModel } = await import('./models/User')
   
   try {
     const user = await UserModel.findById(userId)
     if (!user) {
+      console.warn(`[SUBSCRIPTION] User not found: ${userId}. Falling back to free plan.`)
       return SUBSCRIPTION_PLANS.free
     }
     
     return SUBSCRIPTION_PLANS[user.plan] || SUBSCRIPTION_PLANS.free
   } catch (error) {
-    console.error('Failed to get user plan:', error)
+    console.error('[SUBSCRIPTION] Failed to get user plan:', error)
     return SUBSCRIPTION_PLANS.free
   }
 }

@@ -437,15 +437,30 @@ export class AIProviderRegistry {
   }
 
   private registerProviders() {
+    console.log('[AI-PROVIDER-REGISTRY] Registering AI providers...')
+    
     const openrouter = new OpenRouterProvider()
     const groq = new GroqProvider()
 
     if (openrouter.isAvailable()) {
       this.providers.set('openrouter', openrouter)
+      console.log('[AI-PROVIDER-REGISTRY] ✓ OpenRouter provider registered')
+    } else {
+      console.warn('[AI-PROVIDER-REGISTRY] ✗ OpenRouter provider NOT available (missing OPENROUTER_API_KEY)')
     }
 
     if (groq.isAvailable()) {
       this.providers.set('groq', groq)
+      console.log('[AI-PROVIDER-REGISTRY] ✓ Groq provider registered')
+    } else {
+      console.warn('[AI-PROVIDER-REGISTRY] ✗ Groq provider NOT available (missing GROQ_API_KEY)')
+    }
+    
+    console.log(`[AI-PROVIDER-REGISTRY] Total providers registered: ${this.providers.size}`)
+    
+    if (this.providers.size === 0) {
+      console.error('[AI-PROVIDER-REGISTRY] CRITICAL: No AI providers are available!')
+      console.error('[AI-PROVIDER-REGISTRY] Please set OPENROUTER_API_KEY or GROQ_API_KEY in environment variables')
     }
   }
 

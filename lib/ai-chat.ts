@@ -82,11 +82,20 @@ export async function generateScanOverview(
       duration: Date.now() - startTime,
     }
   } catch (error) {
-    console.error(`[AI-CHAT][${requestId}] Scan overview generation failed:`, error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(`[AI-CHAT][${requestId}] Scan overview generation failed:`, errorMessage)
+    
+    // Determine user-friendly error message
+    let userMessage = generateTemplateOverview(scanContext)
+    
+    if (errorMessage.includes('No AI providers available')) {
+      console.error(`[AI-CHAT][${requestId}] CRITICAL: No AI providers configured!`)
+      // Still use template but log critical error
+    }
     
     // Fallback to template
     return {
-      message: generateTemplateOverview(scanContext),
+      message: userMessage,
       source: 'template',
       duration: Date.now() - startTime,
     }
@@ -160,10 +169,25 @@ export async function generateChatResponse(
       duration: Date.now() - startTime,
     }
   } catch (error) {
-    console.error(`[AI-CHAT][${requestId}] Chat response generation failed:`, error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(`[AI-CHAT][${requestId}] Chat response generation failed:`, errorMessage)
+    
+    // Determine user-friendly error message based on error type
+    let userMessage: string
+    
+    if (errorMessage.includes('No AI providers available')) {
+      userMessage = "VettCode Coach is temporarily offline for maintenance. Our templates can still help! Try asking about specific findings or categories."
+      console.error(`[AI-CHAT][${requestId}] CRITICAL: No AI providers configured!`)
+    } else if (errorMessage.includes('rate limit') || errorMessage.includes('429')) {
+      userMessage = "VettCode Coach is experiencing high demand. Please try again in a few moments."
+    } else if (errorMessage.includes('INVALID_RESPONSE')) {
+      userMessage = "VettCode Coach had trouble processing that request. Could you rephrase your question?"
+    } else {
+      userMessage = "I'm having trouble responding right now. Please try again in a moment, or ask about specific findings from your scan."
+    }
     
     return {
-      message: "I'm having trouble responding right now. Please try again in a moment.",
+      message: userMessage,
       source: 'error',
       duration: Date.now() - startTime,
     }
