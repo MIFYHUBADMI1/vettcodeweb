@@ -226,16 +226,59 @@ Generate code that actually works!`;
  */
 function parsePlanResponse(content: string, request: ProjectPlanRequest): ProjectPlan {
   try {
-    // Extract JSON from code blocks
-    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
-    if (!jsonMatch) {
+    console.log('[parsePlanResponse] Attempting to parse AI response...');
+    console.log('[parsePlanResponse] Response length:', content.length);
+    console.log('[parsePlanResponse] First 500 chars:', content.substring(0, 500));
+    
+    // Try multiple JSON extraction patterns
+    let jsonText: string | null = null;
+    
+    // Pattern 1: ```json ... ```
+    let match = content.match(/```json\s*([\s\S]*?)\s*```/);
+    if (match) {
+      jsonText = match[1];
+      console.log('[parsePlanResponse] Found JSON in ```json block');
+    }
+    
+    // Pattern 2: ``` ... ``` (without json marker)
+    if (!jsonText) {
+      match = content.match(/```\s*([\s\S]*?)\s*```/);
+      if (match) {
+        jsonText = match[1];
+        console.log('[parsePlanResponse] Found JSON in ``` block');
+      }
+    }
+    
+    // Pattern 3: Look for JSON object directly
+    if (!jsonText) {
+      match = content.match(/\{[\s\S]*"goal"[\s\S]*\}/);
+      if (match) {
+        jsonText = match[0];
+        console.log('[parsePlanResponse] Found JSON object directly');
+      }
+    }
+    
+    // Pattern 4: Try to find any JSON object
+    if (!jsonText) {
+      match = content.match(/\{[\s\S]*\}/);
+      if (match) {
+        jsonText = match[0];
+        console.log('[parsePlanResponse] Found generic JSON object');
+      }
+    }
+    
+    if (!jsonText) {
+      console.error('[parsePlanResponse] No JSON found in response');
       throw new Error('No JSON found in response');
     }
     
-    const parsed = JSON.parse(jsonMatch[1]);
+    console.log('[parsePlanResponse] Extracted JSON:', jsonText.substring(0, 200));
+    
+    const parsed = JSON.parse(jsonText);
+    console.log('[parsePlanResponse] Successfully parsed JSON');
     
     // Validate structure
-    return {
+    const plan: ProjectPlan = {
       goal: parsed.goal || `Build a ${request.type} application`,
       features: Array.isArray(parsed.features) ? parsed.features : [],
       pages: Array.isArray(parsed.pages) ? parsed.pages : [],
@@ -245,8 +288,12 @@ function parsePlanResponse(content: string, request: ProjectPlanRequest): Projec
       securityConsiderations: Array.isArray(parsed.securityConsiderations) ? parsed.securityConsiderations : [],
       deploymentTarget: parsed.deploymentTarget || 'Vercel',
     };
+    
+    console.log('[parsePlanResponse] Plan created:', plan.goal);
+    return plan;
   } catch (error) {
-    console.error('Failed to parse plan:', error);
+    console.error('[parsePlanResponse] Failed to parse plan:', error);
+    console.error('[parsePlanResponse] Full content:', content);
     
     // Fallback plan
     return {
