@@ -39,10 +39,10 @@ interface NavItem {
 const navigation: NavItem[] = [
   // WORKSPACE
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Projects', href: '/dashboard/projects', icon: FolderKanban, comingSoon: true },
+  { label: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
   
   // BUILD
-  { label: 'VettCode Vibe', href: '/dashboard/vibe', icon: Sparkles, section: 'BUILD', comingSoon: true },
+  { label: 'VettCode Vibe', href: '/dashboard/vibe', icon: Sparkles, section: 'BUILD' },
   { label: 'Vibe CLI', href: '/dashboard/vibe-cli', icon: Terminal, comingSoon: true },
   
   // SECURE

@@ -8,13 +8,14 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { VibeProjectModel } from '@/lib/models/VibeProject';
 import { ScanModel } from '@/lib/models/Scan';
-import { runSecurityScan, linkScanToProject } from '@/lib/services/vibe-security-service';
 import { checkQuota } from '@/lib/usage-tracking';
 import { NextResponse } from 'next/server';
-import { ensureCLI } from './install-cli';
 
 export const maxDuration = 300; // 5 minutes (for Vercel Pro)
 export const dynamic = 'force-dynamic';
+
+const SCAN_SERVICE_URL = process.env.VETTCODE_SCAN_SERVICE_URL || '';
+const SCAN_SERVICE_API_KEY = process.env.VETTCODE_SERVICE_API_KEY || '';
 
 export async function POST(
   request: Request,
@@ -33,6 +34,18 @@ export async function POST(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
     
+    // Check if scanning service is configured
+    if (!SCAN_SERVICE_URL || !SCAN_SERVICE_API_KEY) {
+      return NextResponse.json(
+        { 
+          error: 'Security scanning is coming soon! Deploy the scanning service first.',
+          message: 'To enable scanning, deploy the SCAN-SERVICE and configure VETTCODE_SCAN_SERVICE_URL and VETTCODE_SERVICE_API_KEY environment variables.',
+          temporary: true
+        },
+        { status: 503 }
+      );
+    }
+    
     // Check quota for security scans
     const quotaCheck = await checkQuota(session.user.email, 'security_scan');
     if (!quotaCheck.allowed) {
@@ -42,23 +55,62 @@ export async function POST(
       );
     }
     
-    // Ensure CLI is installed (installs on first run)
-    try {
-      await ensureCLI();
-    } catch (error) {
-      console.error('[Scan API] CLI installation failed:', error);
+    // Get project files
+    const body = await request.json();
+    const { files } = body;
+
+    if (!files || !Array.isArray(files)) {
       return NextResponse.json(
-        { error: 'Security scanning service is initializing. Please try again in a moment.' },
-        { status: 503 }
+        { error: 'Files array is required in request body' },
+        { status: 400 }
       );
     }
     
-    // Run security scan
-    const scanResult = await runSecurityScan(params.id, session.user.email);
+    console.log(`[Scan API] Calling scanning service for project ${params.id}...`);
     
-    // Link scan to project
-    await linkScanToProject(params.id, session.user.email, scanResult.scanId);
+    // Call external scanning service
+    const scanResponse = await fetch(`${SCAN_SERVICE_URL}/api/scan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SCAN_SERVICE_API_KEY}`,
+      },
+      body: JSON.stringify({
+        projectId: params.id,
+        userId: session.user.email,
+        files,
+      }),
+    });
+
+    if (!scanResponse.ok) {
+      const errorData = await scanResponse.json().catch(() => ({}));
+      console.error('[Scan API] Scanning service error:', errorData);
+      
+      return NextResponse.json(
+        {
+          error: 'Scanning service failed',
+          message: errorData.message || 'The scanning service encountered an error',
+          details: errorData,
+        },
+        { status: scanResponse.status }
+      );
+    }
+
+    const scanResult = await scanResponse.json();
+    console.log(`[Scan API] Scan completed: ${scanResult.totalFindings || 0} findings`);
     
+    // TODO: Store scan results in database
+    // await ScanModel.create({
+    //   userId: session.user.email,
+    //   scanData: scanResult,
+    //   totalFindings: scanResult.totalFindings,
+    //   criticalCount: scanResult.criticalCount,
+    //   highCount: scanResult.highCount,
+    //   mediumCount: scanResult.mediumCount,
+    //   lowCount: scanResult.lowCount,
+    //   infoCount: scanResult.infoCount,
+    // });
+
     return NextResponse.json({
       success: true,
       scan: scanResult,
@@ -81,7 +133,7 @@ export async function POST(
 }
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
