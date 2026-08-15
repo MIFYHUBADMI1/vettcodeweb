@@ -75,18 +75,18 @@ export default function PreviewRunner({ files, viewport, onConsoleMessage }: Pre
     );
   }
 
-  const dimensions = viewportDimensions[viewport];
+  const dimensions = viewportDimensions[viewport] || viewportDimensions.desktop;
 
   return (
-    <div className="h-full overflow-auto bg-gray-900 flex items-center justify-center">
-      <div
+    <div className="h-full w-full bg-gray-900 flex items-center justify-center overflow-auto">
+      <div 
         style={{
           width: dimensions.width,
           height: dimensions.height,
           maxWidth: '100%',
           maxHeight: '100%',
-          transition: 'all 0.3s ease',
         }}
+        className="bg-white"
       >
         <Sandpack
           key={key}
@@ -96,15 +96,15 @@ export default function PreviewRunner({ files, viewport, onConsoleMessage }: Pre
           options={{
             showNavigator: false,
             showTabs: false,
-            showLineNumbers: true,
+            showLineNumbers: false,
             showInlineErrors: true,
             wrapContent: true,
-            editorHeight: '100%',
+            editorHeight: dimensions.height,
             editorWidthPercentage: 0, // Hide editor, show only preview
             classes: {
-              'sp-wrapper': 'sandpack-wrapper',
-              'sp-layout': 'sandpack-layout',
-              'sp-preview': 'sandpack-preview',
+              'sp-wrapper': 'h-full',
+              'sp-layout': 'h-full',
+              'sp-preview': 'h-full',
             },
           }}
           customSetup={{

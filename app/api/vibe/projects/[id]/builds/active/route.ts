@@ -1,13 +1,13 @@
 /**
- * Vibe Project File Tree API
- * GET /api/vibe/projects/[id]/files/tree - Get file tree structure
+ * Active Build Session API
+ * GET /api/vibe/projects/[id]/builds/active - Get active build session for a project
  */
 
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { VibeProjectModel } from '@/lib/models/VibeProject';
-import { getFileTree } from '@/lib/services/vibe-file-service';
-import { NextResponse } from 'next/server';
+import { BuildSessionModel } from '@/lib/models/BuildSession';
 
 export async function GET(
   request: Request,
@@ -19,31 +19,24 @@ export async function GET(
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Verify project access
     const project = await VibeProjectModel.findById(params.id, session.user.email);
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
-    
-    const tree = await getFileTree(params.id, session.user.email);
-    
-    // Return empty tree structure if no files yet (new project)
-    if (!tree || !tree.children || tree.children.length === 0) {
-      return NextResponse.json({
-        tree: {
-          name: 'root',
-          type: 'directory',
-          children: [],
-        },
-      });
-    }
-    
-    return NextResponse.json({ tree });
+
+    // Get active build session
+    const buildSession = await BuildSessionModel.getActiveSession(
+      project._id,
+      session.user.email
+    );
+
+    return NextResponse.json({ session: buildSession });
   } catch (error) {
-    console.error('Failed to fetch file tree:', error);
+    console.error('Failed to fetch active build session:', error);
     return NextResponse.json(
-      { error: 'Failed to load file tree' },
+      { error: 'Failed to load active build session' },
       { status: 500 }
     );
   }

@@ -59,7 +59,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <Link
-      href={`/dashboard/vibe/projects/${project._id.toString()}`}
+      href={`/dashboard/vibe/projects/${project._id.toString()}/overview`}
       className="group bg-gray-900 border border-gray-800 hover:border-purple-500/50 rounded-xl overflow-hidden transition-all transform hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/10"
     >
       {/* Header with gradient */}

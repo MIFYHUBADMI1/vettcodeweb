@@ -7,7 +7,7 @@ import { ObjectId } from 'mongodb';
 import { getDb } from '../mongodb';
 
 export type ProjectType = 'web' | 'mobile' | 'game' | 'api' | 'other';
-export type ProjectStatus = 'planning' | 'active' | 'archived';
+export type ProjectStatus = 'planning' | 'active' | 'ready' | 'archived';
 
 export interface ProjectPlan {
   goal: string;

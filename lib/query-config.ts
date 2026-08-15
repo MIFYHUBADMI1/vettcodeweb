@@ -46,4 +46,11 @@ export const queryKeys = {
   vibeFileTree: (userId: string | undefined, projectId: string) => ['vibe', 'fileTree', userId, projectId] as const,
   vibeChat: (userId: string | undefined, projectId: string) => ['vibe', 'chat', userId, projectId] as const,
   vibeStats: (userId?: string) => ['vibe', 'stats', userId] as const,
+  
+  // Vibe Build Sessions
+  buildSession: (userId: string | undefined, sessionId: string) => ['vibe', 'build', 'session', userId, sessionId] as const,
+  buildTasks: (userId: string | undefined, sessionId: string) => ['vibe', 'build', 'tasks', userId, sessionId] as const,
+  buildActivities: (userId: string | undefined, sessionId: string, limit?: number) => ['vibe', 'build', 'activities', userId, sessionId, limit] as const,
+  projectBuildSessions: (userId: string | undefined, projectId: string) => ['vibe', 'build', 'sessions', userId, projectId] as const,
+  activeBuildSession: (userId: string | undefined, projectId: string) => ['vibe', 'build', 'active', userId, projectId] as const,
 }

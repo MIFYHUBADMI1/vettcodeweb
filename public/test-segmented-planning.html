@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Segmented Planning</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+        .container {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        h1 {
+            margin-top: 0;
+            color: #60a5fa;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 16px;
+            background: #2a2a2a;
+            border-radius: 6px;
+            border-left: 4px solid #60a5fa;
+        }
+        button {
+            background: #60a5fa;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #3b82f6;
+        }
+        button:disabled {
+            background: #4a4a4a;
+            cursor: not-allowed;
+        }
+        .log {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 4px 0;
+            padding: 4px 0;
+        }
+        .log-success { color: #10b981; }
+        .log-error { color: #ef4444; }
+        .log-info { color: #60a5fa; }
+        .log-warning { color: #f59e0b; }
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: #2a2a2a;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .sections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .section-card {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #4a4a4a;
+        }
+        .section-card.completed {
+            border-left-color: #10b981;
+        }
+        .section-card.generating {
+            border-left-color: #f59e0b;
+        }
+        .section-card.failed {
+            border-left-color: #ef4444;
+        }
+        .section-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .section-status {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .stat-card {
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #60a5fa;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Segmented Planning Test</h1>
+        
+        <div class="section">
+            <h3>Project ID</h3>
+            <input type="text" id="projectId" value="6a804e600828e10ba17941a0" placeholder="Enter project ID">
+            <button onclick="startPlanning()">▶️ Start Planning</button>
+            <button onclick="checkProgress()">🔄 Check Progress</button>
+            <button onclick="resetSession()">🔄 Reset Session</button>
+            <button onclick="clearLogs()">🗑️ Clear Logs</button>
+        </div>
+
+        <div class="section">
+            <h3>Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+            </div>
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="statCompleted">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">12</div>
+                    <div class="stat-label">Total Sections</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statStatus">-</div>
+                    <div class="stat-label">Status</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statCost">$0.00</div>
+                    <div class="stat-label">Total Cost</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Sections</h3>
+            <div class="sections-grid" id="sectionsGrid">
+                <!-- Sections will be populated here -->
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Console Log</h3>
+            <div class="log" id="logOutput"></div>
+        </div>
+    </div>
+
+    <script>
+        let pollInterval = null;
+
+        function log(message, type = 'info') {
+            const logOutput = document.getElementById('logOutput');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logOutput.appendChild(entry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('logOutput').innerHTML = '';
+            log('Logs cleared', 'info');
+        }
+
+        async function resetSession() {
+            const projectId = document.getElementById('projectId').value.trim();
+            if (!projectId) {
+                log('❌ Please enter a project ID', 'error');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to reset the current build session? This will cancel any active builds.')) {
+                return;
+            }
+
+            log('🔄 Resetting build session...', 'warning');
+
+            try {
+                const response = await fetch(`/api/vibe/projects/${projectId}/builds/reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    log('✅ Session reset successfully!', 'success');
+                    log(`   ${data.message}`, 'info');
+                    stopPolling();
+                    
+                    // Reset UI
+                    document.getElementById('progressBar').style.width = '0%';
+                    document.getElementById('progressBar').textContent = '0%';
+                    document.getElementById('statCompleted').textContent = '0';
+                    document.getElementById('statStatus').textContent = '-';
+                    document.getElementById('statCost').textContent = '$0.00';
+                    document.getElementById('sectionsGrid').innerHTML = '';
+                } else {
+                    log(`❌ Error: ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Request failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function startPlanning() {
+            const projectId = document.getElementById('projectId').value.trim();
+            if (!projectId) {
+                log('❌ Please enter a project ID', 'error');
+                return;
+            }
+
+            log('🚀 Starting segmented planning...', 'info');
+
+            try {
+                const response = await fetch(`/api/vibe/projects/${projectId}/plan/segmented`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    log('✅ Planning started successfully!', 'success');
+                    log(`Session ID: ${data.sessionId}`, 'info');
+                    
+                    // Start polling
+                    startPolling(projectId);
+                } else if (response.status === 401) {
+                    log(`❌ Unauthorized - Please log in first`, 'error');
+                    log(`💡 Go to http://localhost:3000 and log in, then come back`, 'info');
+                } else {
+                    log(`❌ Error: ${data.error || 'Unknown error'}`, 'error');
+                    if (data.message) {
+                        log(`   ${data.message}`, 'warning');
+                    }
+                }
+            } catch (error) {
+                log(`❌ Request failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkProgress() {
+            const projectId = document.getElementById('projectId').value.trim();
+            if (!projectId) {
+                log('❌ Please enter a project ID', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/vibe/projects/${projectId}/plan/segmented`);
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    updateUI(data);
+                } else if (response.status === 404) {
+                    log(`⚠️ ${data.error}`, 'warning');
+                    if (data.hint) {
+                        log(`💡 ${data.hint}`, 'info');
+                    }
+                    stopPolling();
+                } else {
+                    log(`❌ Error: ${data.error || 'Unknown error'}`, 'error');
+                    stopPolling();
+                }
+            } catch (error) {
+                log(`❌ Request failed: ${error.message}`, 'error');
+                stopPolling();
+            }
+        }
+
+        function updateUI(data) {
+            const plan = data.plan;
+            const progress = data.progress;
+
+            // Update progress bar
+            const progressPercent = progress.progress || 0;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+            document.getElementById('progressBar').textContent = `${progressPercent}%`;
+
+            // Update stats
+            document.getElementById('statCompleted').textContent = plan.completedSections.length;
+            document.getElementById('statStatus').textContent = plan.status;
+
+            // Calculate total cost
+            let totalCost = 0;
+            Object.values(plan.sectionsData || {}).forEach(section => {
+                if (section.aiUsage) {
+                    totalCost += section.aiUsage.cost || 0;
+                }
+            });
+            document.getElementById('statCost').textContent = `$${totalCost.toFixed(4)}`;
+
+            // Update sections grid
+            updateSectionsGrid(plan);
+
+            // Log current state
+            const completedCount = plan.completedSections.length;
+            log(`📊 Progress: ${completedCount}/12 sections (${progressPercent}%) - Status: ${plan.status}`, 'info');
+
+            // Log newly completed sections
+            if (plan.currentSection) {
+                const currentSectionData = plan.sectionsData[plan.currentSection];
+                if (currentSectionData && currentSectionData.status === 'completed') {
+                    log(`✅ ${currentSectionData.name} completed`, 'success');
+                }
+            }
+
+            // Stop polling if completed or failed
+            if (plan.status === 'completed') {
+                log('🎉 All sections completed!', 'success');
+                stopPolling();
+            } else if (plan.status === 'failed') {
+                log('❌ Planning failed', 'error');
+                stopPolling();
+            }
+        }
+
+        function updateSectionsGrid(plan) {
+            const grid = document.getElementById('sectionsGrid');
+            const sectionIds = [
+                'projectUnderstanding', 'projectGoals', 'coreFeatures', 
+                'userExperience', 'pages', 'designDirection',
+                'techStack', 'dataStructure', 'architecture',
+                'security', 'testing', 'summary'
+            ];
+
+            grid.innerHTML = sectionIds.map(id => {
+                const section = plan.sectionsData[id];
+                const isCompleted = plan.completedSections.includes(id);
+                const isGenerating = plan.currentSection === id;
+                const status = section?.status || 'pending';
+                
+                let statusClass = '';
+                let statusIcon = '⏳';
+                if (status === 'completed') {
+                    statusClass = 'completed';
+                    statusIcon = '✅';
+                } else if (status === 'generating') {
+                    statusClass = 'generating';
+                    statusIcon = '⚙️';
+                } else if (status === 'failed') {
+                    statusClass = 'failed';
+                    statusIcon = '❌';
+                }
+
+                return `
+                    <div class="section-card ${statusClass}">
+                        <div class="section-name">${statusIcon} ${section?.name || formatSectionName(id)}</div>
+                        <div class="section-status">${status}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatSectionName(id) {
+            return id.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }
+
+        function startPolling(projectId) {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+
+            log('🔄 Started auto-refresh (every 5 seconds)', 'info');
+            
+            // Check immediately
+            checkProgress();
+
+            // Then poll every 5 seconds
+            pollInterval = setInterval(() => {
+                checkProgress();
+            }, 5000);
+        }
+
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+                log('⏸️ Stopped auto-refresh', 'warning');
+            }
+        }
+
+        // Initial log
+        log('🧪 Test page loaded. Make sure you are logged in!', 'info');
+        log('💡 Enter a project ID and click "Start Planning" or "Check Progress"', 'info');
+
+        // Auto-check progress on load if project ID is filled
+        window.addEventListener('load', () => {
+            const projectId = document.getElementById('projectId').value.trim();
+            if (projectId) {
+                log('📡 Auto-checking progress for existing project...', 'info');
+                setTimeout(() => checkProgress(), 1000);
+            }
+        });
+    </script>
+</body>
+</html>
