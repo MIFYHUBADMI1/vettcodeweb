@@ -477,3 +477,81 @@ export class AIRouter {
     }
   }
 }
+
+
+/**
+ * Simple wrapper function for AI requests
+ * Used by Vibe Coder and other services
+ */
+export interface SimpleAIRequest {
+  userId: string;
+  feature: string;
+  capability?: string;
+  prompt: string;
+  maxTokens?: number;
+}
+
+export interface SimpleAIResponse {
+  content: string;
+  provider?: string;
+  model?: string;
+  tokensUsed?: {
+    input: number;
+    output: number;
+  };
+  cost?: number;
+}
+
+// Singleton AI Router instance
+let routerInstance: AIRouter | null = null;
+
+function getRouterInstance(): AIRouter {
+  if (!routerInstance) {
+    routerInstance = new AIRouter();
+  }
+  return routerInstance;
+}
+
+export async function routeAIRequest(request: SimpleAIRequest): Promise<SimpleAIResponse> {
+  const router = getRouterInstance();
+  
+  // Get user's plan (for now, use free tier)
+  // TODO: Load actual user plan from database
+  const plan = {
+    id: 'free',
+    allowedModelTiers: [1, 2], // Free and Standard models
+    maxTokensPerRequest: request.maxTokens || 2000,
+    priority: 1,
+  };
+  
+  // Create simple conversation format
+  const messages = [
+    {
+      role: 'user',
+      content: request.prompt,
+    },
+  ];
+  
+  try {
+    const result = await router.generateChat(messages, {
+      userId: request.userId,
+      plan: plan as any,
+      feature: request.feature,
+      requestId: `${request.feature}-${Date.now()}`,
+    });
+    
+    return {
+      content: result.message,
+      provider: result.provider,
+      model: result.model,
+      tokensUsed: result.tokensUsed ? {
+        input: Math.floor(result.tokensUsed * 0.3), // Rough estimate
+        output: Math.floor(result.tokensUsed * 0.7),
+      } : undefined,
+      cost: result.estimatedCost,
+    };
+  } catch (error) {
+    console.error('[routeAIRequest] Failed:', error);
+    throw error;
+  }
+}
