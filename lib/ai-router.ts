@@ -519,7 +519,7 @@ export async function routeAIRequest(request: SimpleAIRequest): Promise<SimpleAI
   // TODO: Load actual user plan from database
   const plan = {
     id: 'free',
-    allowedModelTiers: [1, 2], // Free and Standard models
+    allowedModelTiers: [1], // Only Tier 1 free models (13 models)
     maxTokensPerRequest: request.maxTokens || 2000,
     priority: 1,
   };
