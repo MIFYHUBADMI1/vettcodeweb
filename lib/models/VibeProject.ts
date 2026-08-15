@@ -4,7 +4,7 @@
  */
 
 import { ObjectId } from 'mongodb';
-import { getDatabase } from '../mongodb';
+import { getDb } from '../mongodb';
 
 export type ProjectType = 'web' | 'mobile' | 'game' | 'api' | 'other';
 export type ProjectStatus = 'planning' | 'active' | 'archived';
@@ -74,7 +74,7 @@ export class VibeProjectModel {
    * Create a new project
    */
   static async create(input: CreateVibeProjectInput): Promise<VibeProject> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     const project: Omit<VibeProject, '_id'> = {
@@ -102,7 +102,7 @@ export class VibeProjectModel {
    * Find project by ID
    */
   static async findById(projectId: string, userId: string): Promise<VibeProject | null> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     if (!ObjectId.isValid(projectId)) {
@@ -129,7 +129,7 @@ export class VibeProjectModel {
    * Get all projects for a user
    */
   static async getUserProjects(userId: string, status?: ProjectStatus): Promise<VibeProject[]> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     const filter: any = { userId };
@@ -151,7 +151,7 @@ export class VibeProjectModel {
     userId: string,
     updates: UpdateVibeProjectInput
   ): Promise<VibeProject | null> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     if (!ObjectId.isValid(projectId)) {
@@ -176,7 +176,7 @@ export class VibeProjectModel {
    * Archive project (soft delete)
    */
   static async archive(projectId: string, userId: string): Promise<boolean> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     if (!ObjectId.isValid(projectId)) {
@@ -200,7 +200,7 @@ export class VibeProjectModel {
    * Link scan to project
    */
   static async linkScan(projectId: string, userId: string, scanId: string): Promise<boolean> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     if (!ObjectId.isValid(projectId)) {
@@ -226,7 +226,7 @@ export class VibeProjectModel {
     byType: Record<ProjectType, number>;
     byStatus: Record<ProjectStatus, number>;
   }> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     const projects = await collection.find({ userId }).toArray();
@@ -259,7 +259,7 @@ export class VibeProjectModel {
    * Create indexes
    */
   static async createIndexes(): Promise<void> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProject>(this.COLLECTION);
     
     await collection.createIndex({ userId: 1 });

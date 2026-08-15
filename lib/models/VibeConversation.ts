@@ -4,7 +4,7 @@
  */
 
 import { ObjectId } from 'mongodb';
-import { getDatabase } from '../mongodb';
+import { getDb } from '../mongodb';
 
 export type MessageRole = 'user' | 'assistant';
 export type ActionType = 'create_file' | 'update_file' | 'delete_file' | 'install_dependency' | 'run_command';
@@ -94,7 +94,7 @@ export class VibeConversationModel {
     projectId: string,
     userId: string
   ): Promise<VibeConversation> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeConversation>(this.COLLECTION);
     
     let conversation = await collection.findOne({ projectId, userId });
@@ -127,7 +127,7 @@ export class VibeConversationModel {
    * Add message to conversation
    */
   static async addMessage(input: AddMessageInput): Promise<VibeMessage> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeConversation>(this.COLLECTION);
     
     const message: VibeMessage = {
@@ -171,7 +171,7 @@ export class VibeConversationModel {
     result?: any,
     error?: string
   ): Promise<boolean> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeConversation>(this.COLLECTION);
     
     const conversation = await collection.findOne({ projectId, userId });
@@ -218,7 +218,7 @@ export class VibeConversationModel {
     userId: string,
     context: Partial<ProjectContext>
   ): Promise<boolean> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeConversation>(this.COLLECTION);
     
     const result = await collection.updateOne(
@@ -258,7 +258,7 @@ export class VibeConversationModel {
    * Clear conversation
    */
   static async clear(projectId: string, userId: string): Promise<boolean> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeConversation>(this.COLLECTION);
     
     const result = await collection.updateOne(
@@ -278,7 +278,7 @@ export class VibeConversationModel {
    * Delete conversation
    */
   static async delete(projectId: string, userId: string): Promise<boolean> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeConversation>(this.COLLECTION);
     
     const result = await collection.deleteOne({ projectId, userId });
@@ -338,7 +338,7 @@ export class VibeConversationModel {
    * Create indexes
    */
   static async createIndexes(): Promise<void> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeConversation>(this.COLLECTION);
     
     await collection.createIndex({ projectId: 1, userId: 1 }, { unique: true });
@@ -346,3 +346,4 @@ export class VibeConversationModel {
     await collection.createIndex({ updatedAt: -1 });
   }
 }
+

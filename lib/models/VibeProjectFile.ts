@@ -4,7 +4,7 @@
  */
 
 import { ObjectId } from 'mongodb';
-import { getDatabase } from '../mongodb';
+import { getDb } from '../mongodb';
 
 export interface VibeProjectFile {
   _id: ObjectId;
@@ -57,7 +57,7 @@ export class VibeProjectFileModel {
    * Create a new file
    */
   static async create(input: CreateVibeProjectFileInput): Promise<VibeProjectFile> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProjectFile>(this.COLLECTION);
     
     // Validate file size
@@ -106,7 +106,7 @@ export class VibeProjectFileModel {
     userId: string,
     path: string
   ): Promise<VibeProjectFile | null> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProjectFile>(this.COLLECTION);
     
     return collection.findOne({
@@ -123,7 +123,7 @@ export class VibeProjectFileModel {
     projectId: string,
     userId: string
   ): Promise<VibeProjectFile[]> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProjectFile>(this.COLLECTION);
     
     return collection
@@ -141,7 +141,7 @@ export class VibeProjectFileModel {
     path: string,
     updates: UpdateVibeProjectFileInput
   ): Promise<VibeProjectFile | null> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProjectFile>(this.COLLECTION);
     
     // Validate file size
@@ -176,7 +176,7 @@ export class VibeProjectFileModel {
     userId: string,
     path: string
   ): Promise<boolean> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProjectFile>(this.COLLECTION);
     
     const result = await collection.deleteOne({
@@ -195,7 +195,7 @@ export class VibeProjectFileModel {
     projectId: string,
     userId: string
   ): Promise<number> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProjectFile>(this.COLLECTION);
     
     const result = await collection.deleteMany({
@@ -322,7 +322,7 @@ export class VibeProjectFileModel {
    * Create indexes
    */
   static async createIndexes(): Promise<void> {
-    const db = await getDatabase();
+    const db = await getDb();
     const collection = db.collection<VibeProjectFile>(this.COLLECTION);
     
     await collection.createIndex({ projectId: 1, userId: 1 });
@@ -340,3 +340,4 @@ export interface FileTreeNode {
   size?: number;
   children?: FileTreeNode[];
 }
+
