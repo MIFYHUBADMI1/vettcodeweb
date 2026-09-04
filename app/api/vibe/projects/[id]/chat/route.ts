@@ -10,7 +10,6 @@ import { VibeProjectModel } from '@/lib/models/VibeProject';
 import { VibeConversationModel } from '@/lib/models/VibeConversation';
 import { VibeProjectFileModel } from '@/lib/models/VibeProjectFile';
 import { generateCode } from '@/lib/services/vibe-ai-service';
-import { checkQuota } from '@/lib/usage-tracking';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -88,11 +87,15 @@ export async function POST(
       );
     }
     
-    // Check AI quota
-    const quotaCheck = await checkQuota(session.user.email, 'vibe_code_generation');
+    // Check AI token balance
+    const { getUserPlan, canMakeAIRequest } = await import('@/lib/subscription');
+    const { getBestModelTierForPlan } = await import('@/lib/ai-router');
+    const plan = await getUserPlan(session.user.id);
+    const modelTier = getBestModelTierForPlan(plan, 'explanation');
+    const quotaCheck = await canMakeAIRequest(session.user.id, plan, modelTier);
     if (!quotaCheck.allowed) {
       return NextResponse.json(
-        { error: quotaCheck.reason || 'AI quota exceeded' },
+        { error: quotaCheck.reason || 'AI token limit exceeded' },
         { status: 429 }
       );
     }

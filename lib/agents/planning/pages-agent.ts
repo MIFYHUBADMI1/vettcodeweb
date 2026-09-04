@@ -19,7 +19,7 @@ export class PagesAgent extends BaseAgent {
       throw new Error(`Invalid input: ${validation.errors?.join(', ')}`);
     }
 
-    const prompt = this.buildPrompt(context);
+    const prompt = this.buildAgentPrompt(context);
     
     try {
       const response = await this.callAI(
@@ -101,7 +101,7 @@ export class PagesAgent extends BaseAgent {
     };
   }
 
-  private buildPrompt(context: BuildContext): string {
+  private buildAgentPrompt(context: BuildContext): string {
     const features = context.session.artifacts?.segmentedPlan?.sectionsData?.coreFeatures;
     const userFlows = context.session.artifacts?.segmentedPlan?.sectionsData?.userExperience;
     const projectType = context.project.type;

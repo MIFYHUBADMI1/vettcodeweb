@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   Sparkles
 } from 'lucide-react'
+import { toLegacyFindings } from '@/lib/types'
 import type { Finding } from '@/lib/types'
 
 export default function ScanDetailPage() {
@@ -183,7 +184,7 @@ export default function ScanDetailPage() {
             {/* Priority Findings */}
             {scan.totalFindings > 0 && (
               <PriorityFindings
-                findings={scan.scanData.findings}
+                findings={toLegacyFindings(scan.scanData.findings)}
                 onFindingClick={handleFindingClick}
               />
             )}
@@ -191,7 +192,7 @@ export default function ScanDetailPage() {
             {/* Finding Explorer */}
             {scan.totalFindings > 0 && (
               <FindingExplorer
-                findings={scan.scanData.findings}
+                findings={toLegacyFindings(scan.scanData.findings)}
                 onFindingClick={handleFindingClick}
               />
             )}

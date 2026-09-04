@@ -23,7 +23,7 @@ export class ProjectUnderstandingAgent extends BaseAgent {
       throw new Error(`Invalid input: ${validation.errors?.join(', ')}`);
     }
 
-    const prompt = this.buildPrompt(context);
+    const prompt = this.buildAgentPrompt(context);
     
     try {
       const response = await this.callAI(
@@ -100,7 +100,7 @@ export class ProjectUnderstandingAgent extends BaseAgent {
     };
   }
 
-  private buildPrompt(context: BuildContext): string {
+  private buildAgentPrompt(context: BuildContext): string {
     const systemPrompt = `You are a helpful assistant explaining technical projects to beginners.
 Your job is to translate a user's idea into clear, simple language that anyone can understand.
 

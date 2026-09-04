@@ -298,7 +298,7 @@ export default function ProfilePage() {
                     Your VettCode CLI installations will appear here after you sign in
                   </p>
                   <a
-                    href="https://vettedcodewe.vercel.app/cli/auth"
+                    href="/cli/auth"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
                   >
                     <Laptop className="w-4 h-4" />

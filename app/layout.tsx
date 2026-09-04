@@ -5,7 +5,10 @@ import ToastProvider from '@/components/ToastProvider'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://atai.ink'),
-  title: 'ATAI — AI Infrastructure, Applications & Developer Technology',
+  title: {
+    default: 'ATAI — AI Infrastructure, Applications & Developer Technology',
+    template: '%s | ATAI',
+  },
   description:
     'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for the next generation of software. Explore MirrorSite AI, VettCode, and the ATAI ecosystem.',
   keywords: [
@@ -43,6 +46,9 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+  },
+  other: {
+    'google-site-verification': 'fVuc4AOfzEAxCg2a5vgQ967z_AGcs2MbUn6QUjl70b4',
   },
 }
 

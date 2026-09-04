@@ -36,9 +36,9 @@ function sanitizeScanResult(scanResult: ScanResult): ScanResult {
       }
       
       // Normalize file paths to remove local username/absolute paths
-      if (sanitizedFinding.file) {
+      if (sanitizedFinding.filePath) {
         // Remove common path prefixes
-        sanitizedFinding.file = sanitizedFinding.file
+        sanitizedFinding.filePath = sanitizedFinding.filePath
           .replace(/^[A-Z]:\\Users\\[^\\]+\\/, '') // Windows: C:\Users\username\
           .replace(/^\/home\/[^\/]+\//, '') // Linux: /home/username/
           .replace(/^\/Users\/[^\/]+\//, '') // macOS: /Users/username/

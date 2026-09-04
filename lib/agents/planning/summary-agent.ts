@@ -19,7 +19,7 @@ export class SummaryAgent extends BaseAgent {
       throw new Error(`Invalid input: ${validation.errors?.join(', ')}`);
     }
 
-    const prompt = this.buildPrompt(context);
+    const prompt = this.buildAgentPrompt(context);
     
     try {
       const response = await this.callAI(
@@ -99,7 +99,7 @@ export class SummaryAgent extends BaseAgent {
     };
   }
 
-  private buildPrompt(context: BuildContext): string {
+  private buildAgentPrompt(context: BuildContext): string {
     const sections = context.session.artifacts?.segmentedPlan?.sectionsData;
     
     // Gather key information from all sections

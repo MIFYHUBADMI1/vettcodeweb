@@ -7,7 +7,7 @@ import PlanComparison from '@/components/dashboard/usage/PlanComparison'
 import TokenUsageChart from '@/components/dashboard/usage/TokenUsageChart'
 
 export const metadata = {
-  title: 'Usage & Plans - VettCode',
+  title: 'Usage & Plans - VettCode by ATAI',
   description: 'View your usage and manage your plan',
 }
 

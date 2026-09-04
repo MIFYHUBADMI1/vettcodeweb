@@ -52,7 +52,7 @@ function ErrorContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
         <Link
           href="/signin"
-          className="px-8 py-3 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white font-semibold rounded-lg transition"
+          className="px-8 py-3 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 text-white font-semibold rounded-lg transition"
         >
           Try Again
         </Link>
@@ -60,7 +60,7 @@ function ErrorContent() {
           href="/"
           className="px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg transition"
         >
-          Back to VettCode
+          Back to ATAI
         </Link>
       </div>
     </div>

@@ -96,13 +96,158 @@ export default function Home() {
     { label: 'Technology', href: '#technology' },
     { label: 'Products', href: '#products' },
     { label: 'Vision', href: '#vision' },
+    { label: 'FAQ', href: '#faq' },
     { label: 'Contact', href: '#contact' },
   ]
 
+  // JSON-LD Structured Data
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'ATAI',
+    legalName: 'Advanced Technologies and AI Enterprises',
+    url: 'https://atai.ink/',
+    description:
+      'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for the next generation of software.',
+    sameAs: [],
+    subOrganization: [
+      {
+        '@type': 'SoftwareApplication',
+        name: 'MirrorSite AI',
+        url: 'https://mirrorsite.atai.ink/',
+        description:
+          'MirrorSite AI is ATAI\'s AI-powered application-building platform, designed to transform ideas and prompts into functional applications and full-stack MVPs.',
+        applicationCategory: 'DeveloperApplication',
+      },
+      {
+        '@type': 'SoftwareApplication',
+        name: 'VettCode',
+        url: 'https://atai.ink/docs',
+        description:
+          'VettCode is ATAI\'s developer security technology for identifying security vulnerabilities and helping developers vet their applications through an AI-assisted security workflow.',
+        applicationCategory: 'DeveloperApplication',
+      },
+    ],
+  }
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'ATAI',
+    url: 'https://atai.ink/',
+    description:
+      'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for the next generation of software.',
+    publisher: {
+      '@type': 'Organization',
+      name: 'ATAI',
+    },
+  }
+
+  const webPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: 'ATAI — AI Infrastructure, Applications & Developer Technology',
+    url: 'https://atai.ink/',
+    description:
+      'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for the next generation of software.',
+    mainEntity: {
+      '@type': 'Organization',
+      name: 'ATAI',
+    },
+  }
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'What is ATAI?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'ATAI (Advanced Technologies and AI Enterprises) is an AI technology company building AI-powered applications, developer technologies, security systems, and intelligent infrastructure.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What does ATAI build?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure. Its ecosystem covers application development (MirrorSite AI), developer security (VettCode), and future infrastructure.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is MirrorSite AI?',
+        acceptedAnswer: {
+        '@type': 'Answer',
+          text: 'MirrorSite AI is ATAI\'s AI-powered application-building platform. It transforms ideas and prompts into functional applications and full-stack MVPs. MirrorSite AI is an independent product within the ATAI ecosystem.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is VettCode?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'VettCode is ATAI\'s developer security technology focused on code vetting and application security. It scans applications for security vulnerabilities, exposed secrets, and dependency risks directly from the developer workflow.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'How do MirrorSite AI and VettCode relate to ATAI?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'MirrorSite AI and VettCode are both products within the ATAI ecosystem. MirrorSite AI represents the BUILD layer (application development), while VettCode represents the SECURE layer (developer security). ATAI is the parent technology company.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'What is ATAI\'s Build, Secure, Ship vision?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Build, Secure, Ship is ATAI\'s evolving technology roadmap. BUILD (MirrorSite AI) covers application creation. SECURE (VettCode) covers code security. SHIP is a future direction focused on deployment, hosting, and infrastructure capabilities.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is ATAI building AI infrastructure?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, ATAI is building AI infrastructure as part of its long-term vision. The infrastructure layer is designed to include deployment, hosting, database infrastructure, and intelligent production environments. This is currently in development and is not yet available.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Is ATAI building technology for Africa?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Yes, ATAI is focused on building practical AI technologies for Africa and beyond. The goal is to make powerful software capabilities more accessible while building technology that can operate within emerging markets.',
+        },
+      },
+    ],
+  }
+
   return (
     <main className="min-h-screen bg-gray-950 text-white">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* ===================== Navigation ===================== */}
-      <nav className="fixed top-0 w-full z-50 bg-gray-950/80 backdrop-blur-xl border-b border-gray-800">
+      <header className="fixed top-0 w-full z-50 bg-gray-950/80 backdrop-blur-xl border-b border-gray-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
@@ -244,10 +389,10 @@ export default function Home() {
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
       {/* ===================== Hero ===================== */}
-      <section className="pt-32 md:pt-40 pb-24 px-4 relative overflow-hidden">
+      <section id="hero" aria-label="ATAI Hero" className="pt-32 md:pt-40 pb-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 via-transparent to-transparent pointer-events-none" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
         <div className="absolute top-1/3 -left-32 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -300,7 +445,7 @@ export default function Home() {
       </section>
 
       {/* ===================== About / Introduce ATAI ===================== */}
-      <section id="about" className="py-24 px-4">
+      <section id="about" aria-label="About ATAI" className="py-24 px-4">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
@@ -358,7 +503,7 @@ export default function Home() {
       </section>
 
       {/* ===================== Product Ecosystem ===================== */}
-      <section id="products" className="py-24 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
+      <section id="products" aria-label="The ATAI Ecosystem" className="py-24 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">The ATAI Ecosystem</h2>
@@ -460,7 +605,7 @@ export default function Home() {
       </section>
 
       {/* ===================== MirrorSite AI Connection ===================== */}
-      <section id="build" className="py-24 px-4">
+      <section id="build" aria-label="MirrorSite AI - The Build Layer" className="py-24 px-4">
         <div className="container mx-auto">
           <div className="max-w-6xl mx-auto bg-gradient-to-br from-violet-900/30 via-gray-900/50 to-sky-900/30 border border-violet-500/30 rounded-3xl p-8 md:p-12 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-72 h-72 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -509,7 +654,7 @@ export default function Home() {
       </section>
 
       {/* ===================== VettCode Connection ===================== */}
-      <section id="secure" className="py-24 px-4">
+      <section id="secure" aria-label="VettCode - The Secure Layer" className="py-24 px-4">
         <div className="container mx-auto">
           <div className="max-w-6xl mx-auto bg-gradient-to-br from-sky-900/30 via-gray-900/50 to-cyan-900/30 border border-sky-500/30 rounded-3xl p-8 md:p-12 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-72 h-72 bg-sky-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -580,7 +725,7 @@ export default function Home() {
       </section>
 
       {/* ===================== AI Infrastructure ===================== */}
-      <section id="technology" className="py-24 px-4 bg-gradient-to-b from-gray-900/50 to-transparent">
+      <section id="technology" aria-label="ATAI Technology and Infrastructure" className="py-24 px-4 bg-gradient-to-b from-gray-900/50 to-transparent">
         <div className="container mx-auto">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -648,7 +793,7 @@ export default function Home() {
       </section>
 
       {/* ===================== Africa Positioning ===================== */}
-      <section className="py-24 px-4">
+      <section id="africa" aria-label="Building for Africa" className="py-24 px-4">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
@@ -688,7 +833,7 @@ export default function Home() {
       </section>
 
       {/* ===================== Build / Secure / Ship Roadmap ===================== */}
-      <section id="ship" className="py-24 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
+      <section id="ship" aria-label="Build, Secure, Ship - ATAI Technology Roadmap" className="py-24 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
         <div className="container mx-auto">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-16">
@@ -737,7 +882,7 @@ export default function Home() {
       </section>
 
       {/* ===================== Future Vision ===================== */}
-      <section id="vision" className="py-24 px-4">
+      <section id="vision" aria-label="Where ATAI is going" className="py-24 px-4">
         <div className="container mx-auto">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
@@ -780,8 +925,74 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===================== FAQ / Knowledge Section ===================== */}
+      <section id="faq" aria-label="Frequently Asked Questions" className="py-24 px-4 bg-gradient-to-b from-transparent to-gray-900/50">
+        <div className="container mx-auto">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-4">Frequently Asked Questions</h2>
+              <p className="text-xl text-gray-400">Common questions about ATAI and our products.</p>
+            </div>
+
+            <div className="space-y-4">
+              {[
+                {
+                  question: 'What is ATAI?',
+                  answer: 'ATAI (Advanced Technologies and AI Enterprises) is an AI technology company building AI-powered applications, developer technologies, security systems, and intelligent infrastructure for the next generation of software.',
+                },
+                {
+                  question: 'What does ATAI build?',
+                  answer: 'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure. Its ecosystem covers application development through MirrorSite AI, developer security through VettCode, and future deployment and hosting infrastructure.',
+                },
+                {
+                  question: 'What is MirrorSite AI?',
+                  answer: 'MirrorSite AI is ATAI\'s AI-powered application-building platform. It transforms ideas and prompts into functional applications and full-stack MVPs. MirrorSite AI is an independent product within the ATAI ecosystem, representing the BUILD layer.',
+                },
+                {
+                  question: 'What is VettCode?',
+                  answer: 'VettCode is ATAI\'s developer security technology focused on code vetting and application security. Its CLI scans applications for security vulnerabilities, exposed secrets, and dependency risks directly from the developer workflow, with AI-assisted explanations.',
+                },
+                {
+                  question: 'How do MirrorSite AI and VettCode relate to ATAI?',
+                  answer: 'MirrorSite AI and VettCode are both products within the ATAI ecosystem. MirrorSite AI represents the BUILD layer (application development), while VettCode represents the SECURE layer (developer security). ATAI is the parent technology company that develops both.',
+                },
+                {
+                  question: 'What is ATAI\'s Build, Secure, Ship vision?',
+                  answer: 'Build, Secure, Ship is ATAI\'s evolving technology roadmap. BUILD (MirrorSite AI) covers application creation from ideas. SECURE (VettCode) covers code security and vetting. SHIP is a future direction focused on deployment, hosting, and infrastructure capabilities that is currently in development.',
+                },
+                {
+                  question: 'Is ATAI building AI infrastructure?',
+                  answer: 'Yes, ATAI is building AI infrastructure as part of its long-term vision. The infrastructure layer is designed to include deployment, hosting, database infrastructure, and intelligent production environments. This is currently in development and is not yet available as a product.',
+                },
+                {
+                  question: 'Is ATAI building technology for Africa?',
+                  answer: 'Yes, ATAI is focused on building practical AI technologies for Africa and beyond. The goal is to make powerful software capabilities more accessible to developers, businesses, and organizations while building technology that can operate within emerging markets.',
+                },
+              ].map((faq) => (
+                <details
+                  key={faq.question}
+                  className="group bg-gray-900/50 border border-gray-800 rounded-xl overflow-hidden"
+                >
+                  <summary className="flex items-center justify-between px-6 py-5 cursor-pointer text-white font-semibold text-lg hover:bg-gray-800/50 transition list-none">
+                    <span>{faq.question}</span>
+                    <span className="text-gray-500 group-open:rotate-180 transition-transform ml-4 flex-shrink-0">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <div className="px-6 pb-5 text-gray-400 leading-relaxed">
+                    {faq.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ===================== Contact ===================== */}
-      <section id="contact" className="py-24 px-4 bg-gradient-to-b from-gray-900/50 to-transparent">
+      <section id="contact" aria-label="Contact ATAI" className="py-24 px-4 bg-gradient-to-b from-gray-900/50 to-transparent">
         <div className="container mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-indigo-500/20 rounded-2xl mb-6">

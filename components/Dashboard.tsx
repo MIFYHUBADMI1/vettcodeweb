@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowLeft, Shield, AlertTriangle, Info } from 'lucide-react'
-import { ScanResult, Finding } from '@/lib/types'
+import { ScanResult, Finding, toLegacyFindings } from '@/lib/types'
 import FindingCard from './FindingCard'
 import SummaryChart from './SummaryChart'
 
@@ -15,12 +15,14 @@ export default function Dashboard({ scanData, onReset }: DashboardProps) {
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
-  // Filter findings
-  const filteredFindings = scanData.findings.filter((f) => {
-    if (selectedSeverity !== 'all' && f.severity !== selectedSeverity) return false
-    if (selectedCategory !== 'all' && f.category !== selectedCategory) return false
-    return true
-  })
+  // Filter findings (converted to the legacy Finding shape used by the UI)
+  const filteredFindings = toLegacyFindings(
+    scanData.findings.filter((f) => {
+      if (selectedSeverity !== 'all' && f.severity !== selectedSeverity) return false
+      if (selectedCategory !== 'all' && f.category !== selectedCategory) return false
+      return true
+    })
+  )
 
   const severityCounts = {
     CRITICAL: scanData.summary.critical,

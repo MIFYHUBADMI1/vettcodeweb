@@ -1,7 +1,8 @@
 {
-  "name": "vettcode-web",
+  "name": "atai-web",
   "version": "1.0.0",
-  "description": "VettCode Web Dashboard - AI-Powered Security Analysis",
+  "description": "ATAI — AI Infrastructure, Applications & Developer Technology",
+  "homepage": "https://atai.ink",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

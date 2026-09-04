@@ -7,7 +7,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { VibeProjectModel } from '@/lib/models/VibeProject';
 import { generateSecurityFix } from '@/lib/services/vibe-security-service';
-import { checkQuota } from '@/lib/usage-tracking';
 import { NextResponse } from 'next/server';
 import type { NormalizedFinding } from '@/lib/types';
 
@@ -41,10 +40,14 @@ export async function POST(
     const fileContent: string = body.fileContent;
     
     // Check AI quota for security fixes
-    const quotaCheck = await checkQuota(session.user.email, 'vibe_security_fix');
+    const { getUserPlan, canMakeAIRequest } = await import('@/lib/subscription');
+    const { getBestModelTierForPlan } = await import('@/lib/ai-router');
+    const plan = await getUserPlan(session.user.id);
+    const modelTier = getBestModelTierForPlan(plan, 'explanation');
+    const quotaCheck = await canMakeAIRequest(session.user.id, plan, modelTier);
     if (!quotaCheck.allowed) {
       return NextResponse.json(
-        { error: quotaCheck.reason || 'AI quota exceeded' },
+        { error: quotaCheck.reason || 'AI token limit exceeded' },
         { status: 429 }
       );
     }

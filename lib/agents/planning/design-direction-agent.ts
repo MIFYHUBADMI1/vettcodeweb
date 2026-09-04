@@ -19,7 +19,7 @@ export class DesignDirectionAgent extends BaseAgent {
       throw new Error(`Invalid input: ${validation.errors?.join(', ')}`);
     }
 
-    const prompt = this.buildPrompt(context);
+    const prompt = this.buildAgentPrompt(context);
     
     try {
       const response = await this.callAI(
@@ -89,7 +89,7 @@ export class DesignDirectionAgent extends BaseAgent {
     return { valid: true };
   }
 
-  private buildPrompt(context: BuildContext): string {
+  private buildAgentPrompt(context: BuildContext): string {
     const understanding = context.session.artifacts?.segmentedPlan?.sectionsData?.projectUnderstanding;
     
     const systemPrompt = `You are defining visual design for a beginner.

@@ -1,12 +1,12 @@
 ---
 title: Web Dashboard Overview
-description: Introduction to VettCode Web - AI-powered security analysis dashboard
+description: Introduction to VettCode Web by ATAI - AI-powered security analysis dashboard
 order: 1
 ---
 
 # VettCode Web Dashboard Overview
 
-VettCode Web is an AI-powered security analysis dashboard that transforms raw scan results into actionable insights with intelligent explanations.
+VettCode Web is ATAI's AI-powered security analysis dashboard that transforms raw scan results into actionable insights with intelligent explanations.
 
 ## What is VettCode Web?
 

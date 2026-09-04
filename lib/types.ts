@@ -92,3 +92,27 @@ export interface AIExplanationResponse {
   source: 'template' | 'ai' | 'fallback'
   duration: number
 }
+
+/**
+ * Convert a NormalizedFinding (CLI/scan format) into the legacy Finding shape
+ * used by the AI chat/explanation systems.
+ */
+export function toLegacyFinding(f: NormalizedFinding): Finding {
+  return {
+    id: 0,
+    severity: f.severity,
+    category: f.category as Finding['category'],
+    title: f.title,
+    message: f.message,
+    file: f.filePath,
+    line: f.lineNumber || 0,
+    column: undefined,
+    confidence: f.confidenceScore,
+    fingerprint: f.metadata?.ruleId,
+    metadata: f.metadata || {},
+  }
+}
+
+export function toLegacyFindings(findings: NormalizedFinding[]): Finding[] {
+  return findings.map(toLegacyFinding)
+}

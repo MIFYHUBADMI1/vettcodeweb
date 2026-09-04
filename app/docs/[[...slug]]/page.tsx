@@ -29,13 +29,13 @@ export async function generateMetadata({ params }: DocsPageProps): Promise<Metad
 
   if (!doc) {
     return {
-      title: 'Documentation Not Found - VettCode',
+      title: 'Documentation Not Found - VettCode by ATAI',
     }
   }
 
   return {
-    title: `${doc.title} - VettCode Documentation`,
-    description: doc.description || `${doc.title} documentation for VettCode`,
+    title: `${doc.title} - VettCode Documentation | ATAI`,
+    description: doc.description || `${doc.title} documentation for VettCode, an ATAI technology`,
   }
 }
 

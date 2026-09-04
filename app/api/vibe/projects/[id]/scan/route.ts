@@ -8,7 +8,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { VibeProjectModel } from '@/lib/models/VibeProject';
 import { ScanModel } from '@/lib/models/Scan';
-import { checkQuota } from '@/lib/usage-tracking';
 import { NextResponse } from 'next/server';
 
 export const maxDuration = 300; // 5 minutes (for Vercel Pro)
@@ -47,10 +46,14 @@ export async function POST(
     }
     
     // Check quota for security scans
-    const quotaCheck = await checkQuota(session.user.email, 'security_scan');
+    const { getUserPlan, canMakeAIRequest } = await import('@/lib/subscription');
+    const { getBestModelTierForPlan } = await import('@/lib/ai-router');
+    const plan = await getUserPlan(session.user.id);
+    const modelTier = getBestModelTierForPlan(plan, 'explanation');
+    const quotaCheck = await canMakeAIRequest(session.user.id, plan, modelTier);
     if (!quotaCheck.allowed) {
       return NextResponse.json(
-        { error: quotaCheck.reason || 'Security scan quota exceeded' },
+        { error: quotaCheck.reason || 'Security scan token limit exceeded' },
         { status: 429 }
       );
     }

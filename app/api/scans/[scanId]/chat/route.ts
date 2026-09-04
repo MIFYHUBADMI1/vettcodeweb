@@ -12,6 +12,7 @@ import { ScanModel } from '@/lib/models/Scan'
 import { generateChatResponse, generateScanOverview } from '@/lib/ai-chat'
 import { calculateSecurityScore } from '@/lib/security-score'
 import type { ScanContext } from '@/lib/ai-chat-utils'
+import { toLegacyFindings } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -94,20 +95,22 @@ export async function POST(
     )
 
     // Get priority findings (top 10)
-    const priorityFindings = scan.scanData.findings
-      .sort((a, b) => {
-        const severityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 }
-        const aSeverity = severityOrder[a.severity]
-        const bSeverity = severityOrder[b.severity]
-        
-        if (aSeverity !== bSeverity) return aSeverity - bSeverity
-        
-        // Then by confidence
-        const aConf = a.confidence || 0.5
-        const bConf = b.confidence || 0.5
-        return bConf - aConf
-      })
-      .slice(0, 10)
+    const priorityFindings = toLegacyFindings(
+      scan.scanData.findings
+        .sort((a, b) => {
+          const severityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3, INFO: 4 }
+          const aSeverity = severityOrder[a.severity]
+          const bSeverity = severityOrder[b.severity]
+
+          if (aSeverity !== bSeverity) return aSeverity - bSeverity
+
+          // Then by confidence score
+          const aConf = a.confidenceScore || 0.5
+          const bConf = b.confidenceScore || 0.5
+          return bConf - aConf
+        })
+        .slice(0, 10)
+    )
 
     const scanContext: ScanContext = {
       scanId: params.scanId,

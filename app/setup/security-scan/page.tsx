@@ -260,7 +260,7 @@ export default function SecurityScanSetupPage() {
                 <p className="text-sm text-blue-300">
                   Don't have an account yet?{' '}
                   <a 
-                    href="https://vettedcodewe.vercel.app/signup" 
+                    href="/signup" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-purple-400 hover:text-purple-300 underline"

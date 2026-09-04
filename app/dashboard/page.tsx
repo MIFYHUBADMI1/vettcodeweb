@@ -9,7 +9,7 @@ import DashboardContent from '@/components/dashboard/DashboardContent'
 import EcosystemQuickAccess from '@/components/dashboard/EcosystemQuickAccess'
 
 export const metadata = {
-  title: 'Dashboard - VettCode',
+  title: 'Dashboard - VettCode by ATAI',
   description: 'Your VettCode workspace',
 }
 

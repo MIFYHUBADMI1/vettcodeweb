@@ -129,12 +129,12 @@ export abstract class BaseAgent implements IBuildAgent {
 
       return {
         content: response.message, // AIRouter uses 'message', not 'content'
-        provider: response.provider,
-        model: response.model,
+        provider: response.provider || 'unknown',
+        model: response.model || 'unknown',
         usage: {
           inputTokens: Math.max(0, inputTokens),
           outputTokens,
-          cost: response.estimatedCost,
+          cost: response.estimatedCost || 0,
         },
       };
     } catch (error) {

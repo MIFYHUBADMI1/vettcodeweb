@@ -39,6 +39,8 @@ export default withAuth(
           '/start',
           '/privacy',
           '/terms',
+          '/sitemap',
+          '/robots',
         ]
 
         // Allow public routes without auth

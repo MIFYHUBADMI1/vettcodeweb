@@ -19,7 +19,7 @@ export class TechStackAgent extends BaseAgent {
       throw new Error(`Invalid input: ${validation.errors?.join(', ')}`);
     }
 
-    const prompt = this.buildPrompt(context);
+    const prompt = this.buildAgentPrompt(context);
     
     try {
       const response = await this.callAI(
@@ -86,7 +86,7 @@ export class TechStackAgent extends BaseAgent {
     return { valid: true };
   }
 
-  private buildPrompt(context: BuildContext): string {
+  private buildAgentPrompt(context: BuildContext): string {
     const features = context.session.artifacts?.segmentedPlan?.sectionsData?.coreFeatures;
     const pages = context.session.artifacts?.segmentedPlan?.sectionsData?.pages;
     

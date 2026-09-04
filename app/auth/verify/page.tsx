@@ -51,7 +51,7 @@ function VerifyContent() {
       }
     } catch (err) {
       setState('error')
-      setMessage('We couldn\'t reach VettCode. Check your connection and try again.')
+      setMessage('We couldn\'t reach ATAI. Check your connection and try again.')
     }
   }
 
@@ -81,7 +81,7 @@ function VerifyContent() {
         setResendMessage(data.error || 'We couldn\'t send the verification email. Please try again.')
       }
     } catch (err) {
-      setResendMessage('We couldn\'t reach VettCode. Check your connection and try again.')
+      setResendMessage('We couldn\'t reach ATAI. Check your connection and try again.')
     } finally {
       setIsResending(false)
     }
@@ -145,11 +145,11 @@ function VerifyContent() {
           </div>
           <h1 className="text-2xl font-bold mb-4 text-white">Email verified!</h1>
           <p className="text-gray-400 mb-8">
-            Your account is ready. You can now sign in and start building with VettCode.
+            Your account is ready. You can now sign in and start building with ATAI.
           </p>
           <Link
             href="/signin"
-            className="inline-block px-8 py-3 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white font-semibold rounded-lg transition"
+            className="inline-block px-8 py-3 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 text-white font-semibold rounded-lg transition"
           >
             Continue to Sign In
           </Link>
@@ -169,7 +169,7 @@ function VerifyContent() {
               <button
                 onClick={handleResendVerification}
                 disabled={isResending}
-                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isResending ? (
                   <>

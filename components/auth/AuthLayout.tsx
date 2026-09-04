@@ -12,9 +12,9 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       <header className="p-6">
         <Link 
           href="/" 
-          className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent inline-block"
+          className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent inline-block"
         >
-          VettCode
+          ATAI
         </Link>
       </header>
 
@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       {/* Footer */}
       <footer className="p-6 text-center">
         <p className="text-sm text-gray-500">
-          Build. Secure. Ship.
+          AI Infrastructure, Applications & Developer Technology
         </p>
       </footer>
     </div>

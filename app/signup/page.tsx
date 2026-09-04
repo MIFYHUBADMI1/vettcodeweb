@@ -84,7 +84,7 @@ export default function SignUpPage() {
       router.push(`/auth/verify?email=${encodeURIComponent(email)}`)
     } catch (err) {
       setErrors({ 
-        general: 'We couldn\'t reach VettCode. Check your connection and try again.' 
+        general: 'We couldn\'t reach ATAI. Check your connection and try again.' 
       })
     } finally {
       setIsLoading(false)
@@ -105,7 +105,7 @@ export default function SignUpPage() {
     <AuthLayout>
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 text-white">Start building with VettCode.</h1>
+          <h1 className="text-3xl font-bold mb-2 text-white">Start building with ATAI.</h1>
           <p className="text-gray-400">Create your account and start turning ideas into real software.</p>
         </div>
 
@@ -192,7 +192,7 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={isLoading || isGoogleLoading}
-            className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full px-4 py-3 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 text-white font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <>
@@ -209,7 +209,7 @@ export default function SignUpPage() {
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-400">
             Already have an account?{' '}
-            <Link href="/signin" className="text-purple-400 hover:text-purple-300 font-semibold">
+            <Link href="/signin" className="text-sky-400 hover:text-sky-300 font-semibold">
               Sign in
             </Link>
           </p>

@@ -15,6 +15,7 @@ import remarkGfm from 'remark-gfm'
 import { useScan } from '@/lib/hooks/useScans'
 import { generateQuickActions } from '@/lib/ai-chat-utils'
 import { calculateSecurityScore } from '@/lib/security-score'
+import { toLegacyFindings } from '@/lib/types'
 import { 
   Sparkles, 
   ArrowLeft, 
@@ -240,7 +241,7 @@ export default function AICoachPage() {
         score: securityScore.score,
         grade: securityScore.grade,
         categories: Array.from(new Set(scan.scanData.findings.map((f) => f.category))),
-        priorityFindings: scan.scanData.findings.slice(0, 10),
+        priorityFindings: toLegacyFindings(scan.scanData.findings.slice(0, 10)),
       })
     : []
 

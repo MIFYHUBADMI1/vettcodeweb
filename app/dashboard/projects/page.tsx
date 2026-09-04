@@ -6,7 +6,7 @@ import ProjectsList from '@/components/dashboard/projects/ProjectsList'
 import ProjectsHeader from '@/components/dashboard/projects/ProjectsHeader'
 
 export const metadata = {
-  title: 'Projects - VettCode',
+  title: 'Projects - VettCode by ATAI',
   description: 'Manage your projects',
 }
 

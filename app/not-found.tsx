@@ -196,7 +196,7 @@ export default function NotFound() {
                     className="group flex flex-col items-center gap-2 p-4 bg-sky-900/20 hover:bg-sky-900/30 border border-sky-500/20 hover:border-sky-500/40 rounded-xl transition"
                   >
                     <Terminal className="w-6 h-6 text-sky-400" />
-                    <span className="text-sm font-semibold text-center">VettCode Docs</span>
+                    <span className="text-sm font-semibold text-center">VettCode Documentation</span>
                   </Link>
                   <Link
                     href="/#technology"

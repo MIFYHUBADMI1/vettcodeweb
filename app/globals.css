@@ -88,7 +88,7 @@ code {
 /* Landing Page Enhancements */
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent;
   }
 }
 
