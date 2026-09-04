@@ -6,6 +6,7 @@ import DashboardWelcome from '@/components/dashboard/DashboardWelcome'
 import EmptyWorkspace from '@/components/dashboard/EmptyWorkspace'
 import NextActionCard from '@/components/dashboard/NextActionCard'
 import DashboardContent from '@/components/dashboard/DashboardContent'
+import EcosystemQuickAccess from '@/components/dashboard/EcosystemQuickAccess'
 
 export const metadata = {
   title: 'Dashboard - VettCode',
@@ -28,6 +29,9 @@ export default async function DashboardPage() {
       <div className="space-y-8">
         {/* Welcome Header */}
         <DashboardWelcome name={session.user.name || 'Developer'} />
+
+        {/* Ecosystem Quick Access - Always visible for easy navigation */}
+        <EcosystemQuickAccess />
 
         {/* Empty State or Dashboard Content */}
         {!hasProjects ? (

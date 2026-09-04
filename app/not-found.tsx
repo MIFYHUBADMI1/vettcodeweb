@@ -2,16 +2,20 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Terminal, 
-  Shield, 
+import {
+  ArrowRight,
+  Sparkles,
+  Terminal,
+  ShieldCheck,
   Cloud,
   Home,
-  Code
+  Code,
+  Rocket,
+  ExternalLink
 } from 'lucide-react'
 import { useEffect } from 'react'
+
+const MIRRORSITE_URL = 'https://mirrorsite.atai.ink/'
 
 export default function NotFound() {
   const pathname = usePathname()
@@ -21,7 +25,7 @@ export default function NotFound() {
 
   // Set metadata for SEO
   useEffect(() => {
-    document.title = '404 - Page Not Found | VettCode'
+    document.title = '404 - Page Not Found | ATAI'
     const metaDescription = document.querySelector('meta[name="description"]')
     if (metaDescription) {
       metaDescription.setAttribute('content', 'The page you are looking for does not exist.')
@@ -45,25 +49,33 @@ export default function NotFound() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
-                <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">
-                  VettCode
+                <Link
+                  href="/"
+                  className="flex items-baseline gap-2 group"
+                  aria-label="ATAI home"
+                >
+                  <span className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">
+                    ATAI
+                  </span>
+                  <span className="hidden sm:inline text-[10px] font-semibold text-gray-500 uppercase tracking-[0.18em]">
+                    Enterprises
+                  </span>
                 </Link>
                 <div className="hidden md:flex items-center gap-6">
-                  <Link href="/products" className="text-gray-300 hover:text-white transition">Products</Link>
-                  <Link href="/developers" className="text-gray-300 hover:text-white transition">Developers</Link>
-                  <Link href="/pricing" className="text-gray-300 hover:text-white transition">Pricing</Link>
-                  <Link href="/docs" className="text-gray-300 hover:text-white transition">Docs</Link>
+                  <Link href="/#about" className="text-gray-300 hover:text-white transition">About</Link>
+                  <Link href="/#products" className="text-gray-300 hover:text-white transition">Products</Link>
+                  <Link href="/#vision" className="text-gray-300 hover:text-white transition">Vision</Link>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <Link href="/signin" className="text-gray-300 hover:text-white transition">
                   Sign In
                 </Link>
-                <Link 
-                  href="/signup" 
-                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 rounded-lg font-semibold transition"
+                <Link
+                  href="/#products"
+                  className="px-6 py-2 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 rounded-lg font-semibold transition"
                 >
-                  Start Building
+                  Explore ATAI
                 </Link>
               </div>
             </div>
@@ -73,9 +85,9 @@ export default function NotFound() {
         {/* Main Content */}
         <main className="min-h-screen flex items-center justify-center px-4 pt-20 pb-12 relative overflow-hidden">
           {/* Background Effects */}
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/10 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/10 via-transparent to-transparent pointer-events-none" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
-          
+
           <div className="container mx-auto relative">
             <div className="max-w-4xl mx-auto">
               {/* Visual Concept - Broken Development Path */}
@@ -83,21 +95,21 @@ export default function NotFound() {
                 <div className="flex flex-col items-center gap-2 md:gap-3">
                   {/* Top Path */}
                   <div className="flex items-center gap-2 md:gap-3 text-sm md:text-base">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg">
-                      <Code className="w-4 h-4 text-purple-400" />
-                      <span className="text-purple-300">IDEA</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-900/30 border border-violet-500/30 rounded-lg">
+                      <Code className="w-4 h-4 text-violet-400" />
+                      <span className="text-violet-300">IDEA</span>
                     </div>
-                    <div className="w-6 md:w-12 h-px bg-gradient-to-r from-purple-500/50 to-green-500/50" />
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-green-900/30 border border-green-500/30 rounded-lg">
-                      <Terminal className="w-4 h-4 text-green-400" />
-                      <span className="text-green-300">BUILD</span>
+                    <div className="w-6 md:w-12 h-px bg-gradient-to-r from-violet-500/50 to-sky-500/50" />
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-violet-900/30 border border-violet-500/30 rounded-lg">
+                      <Rocket className="w-4 h-4 text-violet-400" />
+                      <span className="text-violet-300">BUILD</span>
                     </div>
                   </div>
 
                   {/* Center - 404 Node */}
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-6 md:w-12 h-px bg-gradient-to-r from-green-500/50 to-blue-500/50" />
-                    <div 
+                    <div className="w-6 md:w-12 h-px bg-gradient-to-r from-violet-500/50 to-sky-500/50" />
+                    <div
                       className="relative px-6 py-3 bg-gray-900/50 border-2 border-red-500/50 rounded-lg"
                       aria-label="404 - Page not found"
                     >
@@ -110,11 +122,11 @@ export default function NotFound() {
 
                   {/* Bottom Path */}
                   <div className="flex items-center gap-2 md:gap-3 opacity-40 text-sm md:text-base">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-900/30 border border-blue-500/30 rounded-lg">
-                      <Shield className="w-4 h-4 text-blue-400" />
-                      <span className="text-blue-300">SECURE</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-sky-900/30 border border-sky-500/30 rounded-lg">
+                      <ShieldCheck className="w-4 h-4 text-sky-400" />
+                      <span className="text-sky-300">SECURE</span>
                     </div>
-                    <div className="w-6 md:w-12 h-px bg-gradient-to-r from-blue-500/50 to-cyan-500/50" />
+                    <div className="w-6 md:w-12 h-px bg-gradient-to-r from-sky-500/50 to-cyan-500/50" />
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-900/30 border border-cyan-500/30 rounded-lg">
                       <Cloud className="w-4 h-4 text-cyan-400" />
                       <span className="text-cyan-300">SHIP</span>
@@ -129,13 +141,13 @@ export default function NotFound() {
                   404
                 </h1>
                 <h2 className="text-2xl md:text-4xl font-bold mb-4 text-white">
-                  Looks like this path doesn't exist.
+                  Looks like this path doesn&apos;t exist.
                 </h2>
                 <p className="text-lg md:text-xl text-gray-400 mb-2 max-w-2xl mx-auto">
-                  The page you're looking for may have moved, been removed, or never existed.
+                  The page you&apos;re looking for may have moved, been removed, or never existed.
                 </p>
                 <p className="text-base md:text-lg text-gray-500">
-                  Don't worry — your project is still here.
+                  Don&apos;t worry — the ecosystem is still here.
                 </p>
               </div>
 
@@ -151,15 +163,15 @@ export default function NotFound() {
 
               {/* Primary Actions */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-                <Link 
-                  href="/" 
-                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-purple-600 to-green-600 hover:from-purple-700 hover:to-green-700 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition"
+                <Link
+                  href="/"
+                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition"
                 >
                   <Home className="w-5 h-5" />
-                  Back to VettCode
+                  Back to ATAI
                 </Link>
-                <Link 
-                  href="/#ecosystem" 
+                <Link
+                  href="/#products"
                   className="w-full sm:w-auto px-8 py-4 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-lg transition"
                 >
                   Explore the Ecosystem
@@ -169,62 +181,59 @@ export default function NotFound() {
               {/* Secondary Navigation Help */}
               <div className="bg-gray-900/50 border border-gray-800 rounded-2xl p-8">
                 <p className="text-center text-gray-400 mb-6">Looking for something?</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Link 
-                    href="/vibe" 
-                    className="group flex flex-col items-center gap-2 p-4 bg-purple-900/20 hover:bg-purple-900/30 border border-purple-500/20 hover:border-purple-500/40 rounded-xl transition"
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <a
+                    href={MIRRORSITE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex flex-col items-center gap-2 p-4 bg-violet-900/20 hover:bg-violet-900/30 border border-violet-500/20 hover:border-violet-500/40 rounded-xl transition"
                   >
-                    <Sparkles className="w-6 h-6 text-purple-400" />
-                    <span className="text-sm font-semibold text-center">VettCode Vibe</span>
-                  </Link>
-                  <Link 
-                    href="/vibe-cli" 
-                    className="group flex flex-col items-center gap-2 p-4 bg-green-900/20 hover:bg-green-900/30 border border-green-500/20 hover:border-green-500/40 rounded-xl transition"
+                    <Sparkles className="w-6 h-6 text-violet-400" />
+                    <span className="text-sm font-semibold text-center">MirrorSite AI</span>
+                  </a>
+                  <Link
+                    href="/docs"
+                    className="group flex flex-col items-center gap-2 p-4 bg-sky-900/20 hover:bg-sky-900/30 border border-sky-500/20 hover:border-sky-500/40 rounded-xl transition"
                   >
-                    <Terminal className="w-6 h-6 text-green-400" />
-                    <span className="text-sm font-semibold text-center">Vibe CLI</span>
+                    <Terminal className="w-6 h-6 text-sky-400" />
+                    <span className="text-sm font-semibold text-center">VettCode Docs</span>
                   </Link>
-                  <Link 
-                    href="/cli" 
-                    className="group flex flex-col items-center gap-2 p-4 bg-blue-900/20 hover:bg-blue-900/30 border border-blue-500/20 hover:border-blue-500/40 rounded-xl transition"
-                  >
-                    <Shield className="w-6 h-6 text-blue-400" />
-                    <span className="text-sm font-semibold text-center">CLI</span>
-                  </Link>
-                  <Link 
-                    href="/hosting" 
+                  <Link
+                    href="/#technology"
                     className="group flex flex-col items-center gap-2 p-4 bg-cyan-900/20 hover:bg-cyan-900/30 border border-cyan-500/20 hover:border-cyan-500/40 rounded-xl transition"
                   >
                     <Cloud className="w-6 h-6 text-cyan-400" />
-                    <span className="text-sm font-semibold text-center">Web Host</span>
+                    <span className="text-sm font-semibold text-center">ATAI Technology</span>
                   </Link>
                 </div>
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm">
+                  <Link href="/#about" className="text-gray-400 hover:text-white transition">
+                    About
+                  </Link>
+                  <span className="text-gray-700">•</span>
+                  <Link href="/#vision" className="text-gray-400 hover:text-white transition">
+                    Vision
+                  </Link>
+                  <span className="text-gray-700">•</span>
                   <Link href="/docs" className="text-gray-400 hover:text-white transition">
                     Documentation
-                  </Link>
-                  <span className="text-gray-700">•</span>
-                  <Link href="/pricing" className="text-gray-400 hover:text-white transition">
-                    Pricing
-                  </Link>
-                  <span className="text-gray-700">•</span>
-                  <Link href="/developers" className="text-gray-400 hover:text-white transition">
-                    Developers
                   </Link>
                 </div>
               </div>
 
               {/* Brand Statement */}
               <div className="mt-12 text-center">
-                <p className="text-3xl md:text-4xl font-bold mb-4 text-transparent bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text">
-                  Build. Secure. Ship.
+                <p className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">
+                  AI infrastructure, applications &amp; developer technology.
                 </p>
-                <p className="text-gray-400 mb-6">Your next idea is still waiting.</p>
-                <Link 
-                  href="/signup" 
-                  className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold transition"
+                <p className="text-gray-400 mb-6">
+                  Advanced Technologies and AI Enterprises · <a href="https://atai.ink" className="text-sky-400 hover:text-sky-300 transition">atai.ink</a>
+                </p>
+                <Link
+                  href="/#products"
+                  className="inline-flex items-center gap-2 text-sky-400 hover:text-sky-300 font-semibold transition"
                 >
-                  Start Building <ArrowRight className="w-5 h-5" />
+                  Explore ATAI Products <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
@@ -233,4 +242,4 @@ export default function NotFound() {
       </body>
     </html>
   )
-}
+}

@@ -13,7 +13,7 @@ import { SubscriptionPlan } from './subscription'
 import { AIProviderRegistry, AIProvider } from './ai-providers'
 import { getTemplate, getTemplateByContext } from './templates'
 import { trackAIUsage } from './usage-tracking'
-import { AIModel } from './model-registry'
+import { AIModel, ModelTier, ModelCapability, getModelById } from './model-registry'
 
 export interface AIRouterOptions {
   userId: string
@@ -120,11 +120,19 @@ export class AIRouter {
 
     for (const { provider, model } of availableProviders) {
       try {
+        const modelInfo = getModelById(model)
         const explanation = await provider.generateExplanation(
           finding,
           model,
-          plan.maxTokensPerRequest
+          modelInfo?.maxTokens ?? 4096
         )
+
+        // Deduct tokens based on the actual model tier used
+        const { deductAITokens } = await import('./subscription')
+        const deduction = await deductAITokens(options.userId, modelInfo?.tier ?? 1)
+        if (!deduction.success) {
+          throw new Error(`AI_TOKEN_LIMIT: ${deduction.reason || 'Insufficient tokens'}`)
+        }
 
         // Estimate cost and track usage
         const inputTokens = this.estimateInputTokens(finding)
@@ -393,7 +401,15 @@ export class AIRouter {
       attempt++
       try {
         console.log(`[AI-ROUTER][${requestId}] Attempt ${attempt}: Trying provider:`, provider.name, 'with model:', model)
-        const message = await provider.generateChat(messages, model, plan.maxTokensPerRequest)
+        const modelInfo = getModelById(model)
+        const message = await provider.generateChat(messages, model, modelInfo?.maxTokens ?? 4096)
+
+        // Deduct tokens based on the actual model tier used
+        const { deductAITokens } = await import('./subscription')
+        const deduction = await deductAITokens(options.userId, modelInfo?.tier ?? 1)
+        if (!deduction.success) {
+          throw new Error(`AI_TOKEN_LIMIT: ${deduction.reason || 'Insufficient tokens'}`)
+        }
 
         console.log(`[AI-ROUTER][${requestId}] Success! Response received from`, provider.name)
         console.log(`[AI-ROUTER][${requestId}] Response length:`, message.length, 'characters')
@@ -478,6 +494,23 @@ export class AIRouter {
   }
 }
 
+/**
+ * Determine the model tier the router would use for a given plan + capability.
+ * Mirrors the selection logic in getAvailableProviders so quota pre-checks
+ * can charge the same tier the router will actually use.
+ */
+export function getBestModelTierForPlan(
+  plan: SubscriptionPlan,
+  capability: ModelCapability = 'explanation'
+): ModelTier {
+  const modelRegistry = require('./model-registry')
+  const { getModelsForPlan, findBestModel } = modelRegistry
+
+  const allowedModels = getModelsForPlan(plan.allowedModelTiers)
+  const bestModel = findBestModel(allowedModels, capability, plan.priority >= 3)
+
+  return (bestModel?.tier ?? 1) as ModelTier
+}
 
 /**
  * Simple wrapper function for AI requests

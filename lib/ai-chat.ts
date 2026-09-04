@@ -38,27 +38,24 @@ export async function generateScanOverview(
   console.log(`[AI-CHAT][${requestId}] Generating scan overview for user:`, userId)
   
   // Dynamic imports for server-only modules
-  const { getUserPlan } = await import('./subscription')
-  const { checkQuota } = await import('./usage-tracking')
+  const { getUserPlan, canMakeAIRequest } = await import('./subscription')
+  const { getBestModelTierForPlan } = await import('./ai-router')
   
-  // Check quota
+  // Check token balance
   const plan = await getUserPlan(userId)
-  console.log(`[AI-CHAT][${requestId}] User plan:`, plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
+  console.log(`[AI-CHAT][${requestId}] User plan:`, plan.id, 'Monthly tokens:', plan.monthlyTokenAllocation)
   
-  const quotaCheck = await checkQuota(
-    userId,
-    plan.dailyAIRequestLimit,
-    plan.monthlyAIRequestLimit
-  )
+  const modelTier = getBestModelTierForPlan(plan, 'explanation')
+  const tokenCheck = await canMakeAIRequest(userId, plan, modelTier)
 
-  if (!quotaCheck.allowed) {
-    console.log(`[AI-CHAT][${requestId}] Quota exceeded, using template fallback. Reason:`, quotaCheck.reason)
+  if (!tokenCheck.allowed) {
+    console.log(`[AI-CHAT][${requestId}] Token limit exceeded, using template fallback. Reason:`, tokenCheck.reason)
     return {
       message: generateTemplateOverview(scanContext),
       source: 'template',
       duration: Date.now() - startTime,
       quotaExceeded: true,
-      quotaReason: quotaCheck.reason,
+      quotaReason: tokenCheck.reason,
     }
   }
 
@@ -118,27 +115,24 @@ export async function generateChatResponse(
   console.log(`[AI-CHAT][${requestId}] Conversation history length:`, conversationHistory.length)
 
   // Dynamic imports for server-only modules
-  const { getUserPlan } = await import('./subscription')
-  const { checkQuota } = await import('./usage-tracking')
+  const { getUserPlan, canMakeAIRequest } = await import('./subscription')
+  const { getBestModelTierForPlan } = await import('./ai-router')
 
-  // Check quota
+  // Check token balance
   const plan = await getUserPlan(userId)
-  console.log(`[AI-CHAT][${requestId}] User plan:`, plan.id, 'Daily limit:', plan.dailyAIRequestLimit)
+  console.log(`[AI-CHAT][${requestId}] User plan:`, plan.id, 'Monthly tokens:', plan.monthlyTokenAllocation)
   
-  const quotaCheck = await checkQuota(
-    userId,
-    plan.dailyAIRequestLimit,
-    plan.monthlyAIRequestLimit
-  )
+  const modelTier = getBestModelTierForPlan(plan, 'explanation')
+  const tokenCheck = await canMakeAIRequest(userId, plan, modelTier)
 
-  if (!quotaCheck.allowed) {
-    console.log(`[AI-CHAT][${requestId}] Quota exceeded. Reason:`, quotaCheck.reason)
+  if (!tokenCheck.allowed) {
+    console.log(`[AI-CHAT][${requestId}] Token limit exceeded. Reason:`, tokenCheck.reason)
     return {
-      message: "You've reached your daily AI limit. Your quota resets tomorrow, or upgrade for more requests!",
+      message: "You've reached your AI token limit. Your tokens reset or top up monthly — upgrade for more!",
       source: 'error',
       duration: Date.now() - startTime,
       quotaExceeded: true,
-      quotaReason: quotaCheck.reason,
+      quotaReason: tokenCheck.reason,
     }
   }
 

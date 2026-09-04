@@ -4,9 +4,8 @@
  */
 
 import { Explanation, Finding } from './types'
-import { AIRouter, AIRouterResult } from './ai-router'
+import { AIRouter, AIRouterResult, getBestModelTierForPlan } from './ai-router'
 import { getUserPlan, canMakeAIRequest } from './subscription'
-import { checkQuota } from './usage-tracking'
 
 // Create singleton router instance
 const aiRouter = new AIRouter()
@@ -34,15 +33,12 @@ export async function generateAIExplanation(
   // Get user's plan
   const plan = await getUserPlan(userId)
 
-  // Check if user can make AI request (quota enforcement)
-  const quotaCheck = await checkQuota(
-    userId,
-    plan.dailyAIRequestLimit,
-    plan.monthlyAIRequestLimit
-  )
+  // Check if user can make AI request (token-based enforcement)
+  const modelTier = getBestModelTierForPlan(plan, 'explanation')
+  const tokenCheck = await canMakeAIRequest(userId, plan, modelTier)
 
-  if (!quotaCheck.allowed) {
-    // Quota exceeded - return template-only result
+  if (!tokenCheck.allowed) {
+    // Token limit reached - return template-only result
     const result = await aiRouter.generateExplanation(finding, {
       userId,
       plan: { ...plan, allowedModelTiers: [] }, // Force template-only by blocking all model tiers
@@ -53,12 +49,14 @@ export async function generateAIExplanation(
       ...result,
       quotaInfo: {
         allowed: false,
-        reason: quotaCheck.reason,
+        remaining: tokenCheck.tokensRemaining,
+        limit: plan.monthlyTokenAllocation,
+        reason: tokenCheck.reason,
       },
     }
   }
 
-  // Quota OK - use AI router
+  // Token balance OK - use AI router
   const result = await aiRouter.generateExplanation(finding, {
     userId,
     plan,
@@ -69,6 +67,8 @@ export async function generateAIExplanation(
     ...result,
     quotaInfo: {
       allowed: true,
+      remaining: tokenCheck.tokensRemaining,
+      limit: plan.monthlyTokenAllocation,
     },
   }
 }

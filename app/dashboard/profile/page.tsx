@@ -381,8 +381,15 @@ export default function ProfilePage() {
 
         {/* Revoke Confirmation Modal */}
         {deviceToRevoke && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 max-w-md w-full">
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{
+              background: 'rgba(10, 15, 30, 0.7)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+            }}
+          >
+            <div className="bg-gray-800/95 backdrop-blur-xl border border-gray-600 rounded-2xl shadow-2xl p-6 max-w-md w-full">
               <div className="flex items-start gap-4 mb-4">
                 <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center flex-shrink-0">
                   <AlertTriangle className="w-6 h-6 text-red-400" />
@@ -391,7 +398,7 @@ export default function ProfilePage() {
                   <h3 className="text-xl font-bold text-white mb-2">
                     Revoke CLI Access?
                   </h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-300 text-sm">
                     This will disconnect <strong>{deviceToRevoke.deviceName}</strong> from your
                     VettCode account. The CLI will need to be signed in again to access your
                     account.
@@ -402,14 +409,14 @@ export default function ProfilePage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeviceToRevoke(null)}
-                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+                  className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition-all duration-300"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleRevokeDevice(deviceToRevoke)}
                   disabled={revokeDeviceMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {revokeDeviceMutation.isPending ? 'Revoking...' : 'Revoke Access'}
                 </button>

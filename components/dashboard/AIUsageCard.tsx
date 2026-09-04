@@ -1,34 +1,33 @@
 /**
  * AI Usage Card
- * Shows AI usage and plan information on the main dashboard
+ * Shows token balance and plan information on the main dashboard
  */
 
 'use client'
 
 import Link from 'next/link'
-import { Sparkles, ArrowRight, TrendingUp } from 'lucide-react'
+import { Sparkles, ArrowRight, TrendingUp, Calendar } from 'lucide-react'
 
 interface AIUsageCardProps {
-  usage: {
-    today: {
-      requests: number
-      remaining: number
-    }
-    thisMonth?: {
-      requests: number
-      remaining: number | null
-    }
+  tokens: {
+    currentBalance: number
+    monthlyAllocation: number
+    percentUsed: number
+    plan: string
+    dailyLimit?: number
+    dailyUsed?: number
+    dailyRemaining?: number
+    isLastDayOfMonth?: boolean
   }
   plan: {
     name: string
     tier: string
-    dailyLimit: number
-    monthlyLimit: number
+    monthlyTokens: number
   }
   isLoading?: boolean
 }
 
-export default function AIUsageCard({ usage, plan, isLoading }: AIUsageCardProps) {
+export default function AIUsageCard({ tokens, plan, isLoading }: AIUsageCardProps) {
   if (isLoading) {
     return (
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 animate-pulse">
@@ -40,10 +39,10 @@ export default function AIUsageCard({ usage, plan, isLoading }: AIUsageCardProps
     )
   }
 
-  const dailyPercentage = (usage.today.requests / plan.dailyLimit) * 100
-  const isLowUsage = dailyPercentage < 50
-  const isMediumUsage = dailyPercentage >= 50 && dailyPercentage < 80
-  const isHighUsage = dailyPercentage >= 80
+  const percentUsed = tokens?.percentUsed || 0
+  const isLowUsage = percentUsed < 50
+  const isMediumUsage = percentUsed >= 50 && percentUsed < 80
+  const isHighUsage = percentUsed >= 80
 
   const getUsageColor = () => {
     if (isHighUsage) return 'text-orange-400'
@@ -57,6 +56,8 @@ export default function AIUsageCard({ usage, plan, isLoading }: AIUsageCardProps
     return 'bg-green-500'
   }
 
+  const tokensUsed = tokens ? tokens.monthlyAllocation - tokens.currentBalance : 0
+
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-colors">
       <div className="flex items-center justify-between mb-4">
@@ -69,7 +70,7 @@ export default function AIUsageCard({ usage, plan, isLoading }: AIUsageCardProps
             <p className="text-xs text-gray-400">{plan.name}</p>
           </div>
         </div>
-        
+
         <Link
           href="/profile?tab=usage"
           className="text-xs text-purple-400 hover:text-purple-300 transition-colors flex items-center gap-1"
@@ -79,32 +80,34 @@ export default function AIUsageCard({ usage, plan, isLoading }: AIUsageCardProps
         </Link>
       </div>
 
-      {/* Daily Usage */}
+      {/* Token Balance */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-400">Today</span>
+          <span className="text-sm text-gray-400">Tokens</span>
           <span className={`text-sm font-semibold ${getUsageColor()}`}>
-            {usage.today.requests} / {plan.dailyLimit}
+            {tokensUsed.toLocaleString()} / {tokens.monthlyAllocation.toLocaleString()}
           </span>
         </div>
         <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
           <div
             className={`h-full ${getProgressBarColor()} transition-all duration-500`}
-            style={{ width: `${Math.min(dailyPercentage, 100)}%` }}
+            style={{ width: `${Math.min(percentUsed, 100)}%` }}
           />
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          {usage.today.remaining} requests remaining
+          {tokens.currentBalance.toLocaleString()} tokens remaining this month
         </p>
       </div>
 
-      {/* Monthly Usage (if applicable) */}
-      {plan.monthlyLimit > 0 && usage.thisMonth && (
+      {/* Daily Limit (free users) */}
+      {tokens.plan === 'free' && tokens.dailyLimit && (
         <div className="pt-4 border-t border-gray-800">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-400">This Month</span>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-gray-400 flex items-center gap-1">
+              <Calendar className="w-3 h-3" /> Today
+            </span>
             <span className="text-xs text-gray-300 font-medium">
-              {usage.thisMonth.requests} / {plan.monthlyLimit}
+              {tokens.dailyRemaining}/{tokens.dailyLimit} tokens left
             </span>
           </div>
         </div>
@@ -118,10 +121,10 @@ export default function AIUsageCard({ usage, plan, isLoading }: AIUsageCardProps
         >
           <span className="flex items-center justify-center gap-1">
             <TrendingUp className="w-4 h-4" />
-            Upgrade for More
+            Upgrade for More Tokens
           </span>
         </Link>
       )}
     </div>
   )
-}
+}

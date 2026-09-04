@@ -22,10 +22,8 @@ export interface SubscriptionPlan {
   // Capability Access (what features user can use)
   allowedCapabilities: ModelCapability[]
   
-  // AI Usage Limits
-  dailyAIRequestLimit: number
-  monthlyAIRequestLimit: number
-  maxTokensPerRequest: number
+  // Token-based AI Usage (NEW - replaces request limits)
+  monthlyTokenAllocation: number // Total tokens per month
   
   // Feature Flags
   features: {
@@ -41,9 +39,6 @@ export interface SubscriptionPlan {
     priorityAI: boolean
   }
   
-  // Cost Management
-  monthlyAISpendLimit: number // in USD
-  
   // Priority (higher = better routing)
   priority: number
 }
@@ -51,8 +46,10 @@ export interface SubscriptionPlan {
 /**
  * Plan Definitions
  * 
- * Note: Plans are defined by TIERS and CAPABILITIES
- * The actual models are selected dynamically from Model Registry
+ * Token-based system:
+ * - Users get monthly token allocation
+ * - Each AI request deducts tokens based on model tier
+ * - Token costs are internal (not shown to users, documented separately)
  */
 export const SUBSCRIPTION_PLANS: Record<PlanTier, SubscriptionPlan> = {
   free: {
@@ -66,15 +63,13 @@ export const SUBSCRIPTION_PLANS: Record<PlanTier, SubscriptionPlan> = {
     // Capability Access: Basic only
     allowedCapabilities: ['explanation'],
     
-    // AI Limits
-    dailyAIRequestLimit: parseInt(process.env.FREE_DAILY_AI_LIMIT || '5'),
-    monthlyAIRequestLimit: 0, // No monthly limit, only daily
-    maxTokensPerRequest: 500,
+    // Token Allocation: 15,000 tokens/month (~300 AI requests with Tier 1 models)
+    monthlyTokenAllocation: 15000,
     
     // Features
     features: {
       basicExplanations: true,
-      aiExplanations: true, // Limited by quota
+      aiExplanations: true,
       aiChat: false,
       fixSuggestions: false,
       deepAnalysis: false,
@@ -85,7 +80,6 @@ export const SUBSCRIPTION_PLANS: Record<PlanTier, SubscriptionPlan> = {
       priorityAI: false,
     },
     
-    monthlyAISpendLimit: 0, // Free tier has no spend
     priority: 1,
   },
   
@@ -106,10 +100,8 @@ export const SUBSCRIPTION_PLANS: Record<PlanTier, SubscriptionPlan> = {
       'security',
     ],
     
-    // AI Limits
-    dailyAIRequestLimit: 50,
-    monthlyAIRequestLimit: parseInt(process.env.PRO_MONTHLY_AI_LIMIT || '150'),
-    maxTokensPerRequest: 1000,
+    // Token Allocation: 100,000 tokens/month
+    monthlyTokenAllocation: 100000,
     
     // Features
     features: {
@@ -125,7 +117,6 @@ export const SUBSCRIPTION_PLANS: Record<PlanTier, SubscriptionPlan> = {
       priorityAI: false,
     },
     
-    monthlyAISpendLimit: 5.0, // $5/month AI budget
     priority: 2,
   },
   
@@ -148,10 +139,8 @@ export const SUBSCRIPTION_PLANS: Record<PlanTier, SubscriptionPlan> = {
       'mentor',
     ],
     
-    // AI Limits
-    dailyAIRequestLimit: 200,
-    monthlyAIRequestLimit: parseInt(process.env.PRO_PLUS_MONTHLY_AI_LIMIT || '500'),
-    maxTokensPerRequest: 2000,
+    // Token Allocation: 500,000 tokens/month
+    monthlyTokenAllocation: 500000,
     
     // Features
     features: {
@@ -167,9 +156,19 @@ export const SUBSCRIPTION_PLANS: Record<PlanTier, SubscriptionPlan> = {
       priorityAI: true,
     },
     
-    monthlyAISpendLimit: 20.0, // $20/month AI budget
     priority: 3,
   },
+}
+
+/**
+ * Token costs per model tier (internal, not exposed to users)
+ * These are fixed costs per AI request based on model tier
+ */
+export const TOKEN_COSTS_BY_TIER: Record<ModelTier, number> = {
+  1: 50,    // Tier 1 (free models): 50 tokens per request (~10 requests/day for free users)
+  2: 200,   // Tier 2 (paid models): 200 tokens per request
+  3: 300,   // Tier 3 (advanced models): 300 tokens per request
+  4: 500,   // Tier 4+ (premium models): 500 tokens per request
 }
 
 /**
@@ -207,41 +206,69 @@ export async function getUserPlan(userId?: string): Promise<SubscriptionPlan> {
 }
 
 /**
- * Check if user can make AI request
+ * Check if user can make AI request (token-based)
  */
 export async function canMakeAIRequest(
   userId: string,
-  plan: SubscriptionPlan
-): Promise<{ allowed: boolean; reason?: string }> {
+  plan: SubscriptionPlan,
+  modelTier: ModelTier
+): Promise<{ allowed: boolean; reason?: string; tokensRequired?: number; tokensRemaining?: number }> {
   // Import dynamically
-  const { AIUsageModel } = await import('./models/AIUsage')
+  const { UserModel } = await import('./models/User')
   
   try {
-    // Check daily limit
-    const dailyUsage = await AIUsageModel.getDailyCount(userId)
-    if (dailyUsage >= plan.dailyAIRequestLimit) {
+    // Calculate tokens required for this request
+    const tokensRequired = TOKEN_COSTS_BY_TIER[modelTier] || TOKEN_COSTS_BY_TIER[1]
+    
+    // Check user's token balance
+    const balance = await UserModel.getTokenBalance(userId)
+    
+    if (!balance) {
       return {
         allowed: false,
-        reason: `Daily AI limit reached (${plan.dailyAIRequestLimit} requests). Upgrade to ${plan.id === 'free' ? 'Pro' : 'Pro+'} for more!`,
+        reason: 'Unable to check token balance',
       }
     }
     
-    // Check monthly limit (if applicable)
-    if (plan.monthlyAIRequestLimit > 0) {
-      const monthlyUsage = await AIUsageModel.getMonthlyCount(userId)
-      if (monthlyUsage >= plan.monthlyAIRequestLimit) {
-        return {
-          allowed: false,
-          reason: `Monthly AI limit reached (${plan.monthlyAIRequestLimit} requests). Reset next month or upgrade!`,
-        }
+    if (balance.currentBalance < tokensRequired) {
+      return {
+        allowed: false,
+        reason: `Insufficient tokens. Required: ${tokensRequired.toLocaleString()}, Available: ${balance.currentBalance.toLocaleString()}`,
+        tokensRequired,
+        tokensRemaining: balance.currentBalance,
       }
     }
     
-    return { allowed: true }
+    return { 
+      allowed: true,
+      tokensRequired,
+      tokensRemaining: balance.currentBalance,
+    }
   } catch (error) {
     console.error('Failed to check AI request:', error)
     // Allow request if check fails (fail open)
     return { allowed: true }
+  }
+}
+
+/**
+ * Deduct tokens after successful AI request
+ */
+export async function deductAITokens(
+  userId: string,
+  modelTier: ModelTier
+): Promise<{ success: boolean; newBalance: number; tokensDeducted: number; reason?: string }> {
+  const { UserModel } = await import('./models/User')
+  
+  const tokensDeducted = TOKEN_COSTS_BY_TIER[modelTier] || TOKEN_COSTS_BY_TIER[1]
+  
+  const result = await UserModel.deductTokens(userId, tokensDeducted)
+  
+  return {
+    success: result.success,
+    newBalance: result.newBalance,
+    tokensDeducted,
+    reason: result.reason,
   }
 }
 
@@ -317,16 +344,22 @@ export function getPlanComparison(): Array<{
       pro_plus: true,
     },
     {
-      feature: 'AI Explanations',
-      free: '5/day',
-      pro: '150/month',
-      pro_plus: '500/month',
+      feature: 'Monthly Tokens',
+      free: '15,000',
+      pro: '100,000',
+      pro_plus: '500,000',
     },
     {
       feature: 'Model Access',
       free: 'Tier 1 (Standard)',
       pro: 'Tier 1-3 (Advanced)',
       pro_plus: 'Tier 1-4 (Premium)',
+    },
+    {
+      feature: 'AI Chat',
+      free: false,
+      pro: true,
+      pro_plus: true,
     },
     {
       feature: 'Code Analysis',

@@ -54,7 +54,7 @@ const navigation: NavItem[] = [
   
   // ACCOUNT
   { label: 'Profile', href: '/dashboard/profile', icon: Settings, section: 'ACCOUNT' },
-  { label: 'Usage & Plans', href: '/dashboard/usage', icon: CreditCard, comingSoon: true },
+  { label: 'Usage & Plans', href: '/dashboard/usage', icon: CreditCard },
 ]
 
 const SIDEBAR_STORAGE_KEY = 'vettcode-sidebar-collapsed'
@@ -248,13 +248,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           )}>
             <Link 
               href="/dashboard" 
-              className="font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
-              title={sidebarCollapsed ? 'VettCode' : undefined}
+              className="font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+              title={sidebarCollapsed ? 'ATAI' : undefined}
             >
               {sidebarCollapsed ? (
-                <span className="text-2xl">V</span>
+                <span className="text-2xl">A</span>
               ) : (
-                <span className="text-xl">VettCode</span>
+                <span className="flex flex-col leading-tight">
+                  <span className="text-xl">ATAI</span>
+                  <span className="text-[10px] font-semibold text-gray-500 tracking-[0.15em] uppercase">VettCode</span>
+                </span>
               )}
             </Link>
           </div>
@@ -395,9 +398,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex items-center justify-between h-16 px-4">
           <Link 
             href="/dashboard" 
-            className="text-xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent"
+            className="text-xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent"
           >
-            VettCode
+            ATAI
           </Link>
           <button
             ref={menuButtonRef}
@@ -434,8 +437,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex flex-col h-full">
               {/* Mobile Header */}
               <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
-                <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent">
-                  VettCode
+                <span className="text-xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">
+                  ATAI
                 </span>
                 <button
                   onClick={closeMobileMenu}

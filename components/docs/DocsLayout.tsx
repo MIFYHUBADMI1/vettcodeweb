@@ -61,9 +61,11 @@ export default function DocsLayout({ children, navigation }: DocsLayoutProps) {
             <div className="flex items-center gap-6">
               <Link 
                 href="/" 
-                className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-green-400 bg-clip-text text-transparent"
+                className="text-2xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent"
+                aria-label="ATAI home"
+                title="ATAI — Advanced Technologies and AI Enterprises"
               >
-                VettCode
+                ATAI
               </Link>
               <span className="text-gray-500">/</span>
               <Link 
@@ -71,7 +73,7 @@ export default function DocsLayout({ children, navigation }: DocsLayoutProps) {
                 className="flex items-center gap-2 text-gray-300 hover:text-white transition"
               >
                 <Book className="w-5 h-5" />
-                <span className="font-semibold">Documentation</span>
+                <span className="font-semibold">VettCode Documentation</span>
               </Link>
             </div>
             <div className="flex items-center gap-4">

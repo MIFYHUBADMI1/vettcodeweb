@@ -4,9 +4,46 @@ import Providers from '@/components/Providers'
 import ToastProvider from '@/components/ToastProvider'
 
 export const metadata: Metadata = {
-  title: 'VettCode - Build. Secure. Ship.',
-  description: 'One ecosystem for turning ideas into real software. From your first prompt to production, VettCode gives you the tools to create, code, test, secure, and deploy applications.',
-  keywords: ['VettCode', 'AI development', 'security analysis', 'code deployment', 'developer tools', 'application building', 'code security', 'web hosting', 'AI coding agent'],
+  metadataBase: new URL('https://atai.ink'),
+  title: 'ATAI — AI Infrastructure, Applications & Developer Technology',
+  description:
+    'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for the next generation of software. Explore MirrorSite AI, VettCode, and the ATAI ecosystem.',
+  keywords: [
+    'ATAI',
+    'ATAI Enterprises',
+    'Advanced Technologies and AI Enterprises',
+    'AI infrastructure',
+    'AI applications',
+    'developer technology',
+    'MirrorSite AI',
+    'VettCode',
+    'AI-powered development',
+    'code security',
+    'developer tools',
+    'intelligent infrastructure',
+  ],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://atai.ink/',
+    siteName: 'ATAI',
+    title: 'ATAI — AI Infrastructure, Applications & Developer Technology',
+    description:
+      'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for the next generation of software.',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ATAI — AI Infrastructure, Applications & Developer Technology',
+    description:
+      'ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for the next generation of software.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({
@@ -24,4 +61,4 @@ export default function RootLayout({
       </body>
     </html>
   )
-}
+}

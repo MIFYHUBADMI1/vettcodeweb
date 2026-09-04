@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUsageAnalytics } from '@/lib/usage-tracking'
 import { getUserPlan } from '@/lib/subscription'
+import { UserModel } from '@/lib/models/User'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,30 +12,42 @@ export async function GET(request: NextRequest) {
 
     // Get usage analytics
     const analytics = await getUsageAnalytics(userId)
-    
+
     // Get user's plan
     const plan = await getUserPlan(userId)
+
+    // Get token balance (falls back to plan allocation for anonymous/invalid users)
+    let balance = null
+    try {
+      balance = await UserModel.getTokenBalance(userId)
+    } catch (error) {
+      console.warn('[USAGE] Could not fetch token balance:', error)
+    }
 
     return NextResponse.json({
       plan: {
         name: plan.name,
         tier: plan.id,
-        dailyLimit: plan.dailyAIRequestLimit,
-        monthlyLimit: plan.monthlyAIRequestLimit,
+        monthlyTokens: plan.monthlyTokenAllocation,
+      },
+      tokens: {
+        currentBalance: balance?.currentBalance ?? plan.monthlyTokenAllocation,
+        monthlyAllocation: balance?.monthlyAllocation ?? plan.monthlyTokenAllocation,
+        percentUsed: balance?.percentUsed ?? 0,
+        plan: balance?.plan ?? plan.id,
+        dailyLimit: balance?.dailyLimit,
+        dailyUsed: balance?.dailyUsed,
+        dailyRemaining: balance?.dailyRemaining,
+        isLastDayOfMonth: balance?.isLastDayOfMonth,
       },
       usage: {
         today: {
           requests: analytics.today.requests,
           cost: analytics.today.cost,
-          remaining: Math.max(0, plan.dailyAIRequestLimit - analytics.today.requests),
         },
         thisMonth: {
           requests: analytics.thisMonth.requests,
           cost: analytics.thisMonth.cost,
-          remaining:
-            plan.monthlyAIRequestLimit > 0
-              ? Math.max(0, plan.monthlyAIRequestLimit - analytics.thisMonth.requests)
-              : null,
         },
       },
       providers: analytics.topProviders,
@@ -47,4 +60,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+}

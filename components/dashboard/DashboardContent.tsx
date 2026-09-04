@@ -79,9 +79,9 @@ export default function DashboardContent({ userId }: DashboardContentProps) {
         <SecurityOverviewCard scans={scans} isLoading={scansLoading} />
 
         {/* AI Usage */}
-        {usageData && (
+        {usageData && usageData.tokens && (
           <AIUsageCard
-            usage={usageData.usage}
+            tokens={usageData.tokens}
             plan={usageData.plan}
             isLoading={usageLoading}
           />
