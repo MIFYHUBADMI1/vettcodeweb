@@ -1,45 +1,33 @@
 'use client'
 
 import Link from 'next/link'
-import { Sparkles, Terminal, Shield, Cloud, ArrowRight } from 'lucide-react'
+import { Sparkles, Terminal, Shield, Cloud, Hammer, ArrowRight } from 'lucide-react'
+
+const MIRRORSITE_URL = 'https://mirrorsite.atai.ink'
 
 export default function EcosystemQuickAccess() {
   const products = [
     {
-      id: 'vibe',
-      name: 'VettCode Vibe',
-      description: 'Turn ideas into applications with AI',
-      icon: Sparkles,
-      color: 'purple',
-      href: '/dashboard/vibe',
-      bgGradient: 'from-purple-900/30 to-purple-800/10',
-      borderColor: 'border-purple-500/30 hover:border-purple-500/50',
-      iconBg: 'bg-purple-500/20 group-hover:bg-purple-500/30',
-      iconColor: 'text-purple-400',
-      linkColor: 'text-purple-400 hover:text-purple-300',
-      comingSoon: true,
-    },
-    {
-      id: 'vibe-cli',
-      name: 'Vibe CLI',
-      description: 'AI coding agent in your terminal',
-      icon: Terminal,
-      color: 'green',
-      href: '/dashboard/vibe-cli',
-      bgGradient: 'from-green-900/30 to-green-800/10',
-      borderColor: 'border-green-500/30 hover:border-green-500/50',
-      iconBg: 'bg-green-500/20 group-hover:bg-green-500/30',
-      iconColor: 'text-green-400',
-      linkColor: 'text-green-400 hover:text-green-300',
-      comingSoon: true,
+      id: 'mirrorsite',
+      name: 'MirrorSite AI',
+      description: 'Turn ideas or websites into full applications with AI.',
+      icon: Hammer,
+      href: MIRRORSITE_URL,
+      external: true,
+      bgGradient: 'from-violet-900/30 to-violet-800/10',
+      borderColor: 'border-violet-500/30 hover:border-violet-500/60',
+      iconBg: 'bg-violet-500/20 group-hover:bg-violet-500/30',
+      iconColor: 'text-violet-400',
+      linkColor: 'text-violet-400 hover:text-violet-300',
+      comingSoon: false,
     },
     {
       id: 'cli',
       name: 'VettCode CLI',
-      description: 'Security scans for your projects',
+      description: 'Security scans for your projects.',
       icon: Shield,
-      color: 'blue',
       href: '/dashboard/scans',
+      external: false,
       bgGradient: 'from-blue-900/30 to-blue-800/10',
       borderColor: 'border-blue-500/30 hover:border-blue-500/50',
       iconBg: 'bg-blue-500/20 group-hover:bg-blue-500/30',
@@ -48,12 +36,26 @@ export default function EcosystemQuickAccess() {
       comingSoon: false,
     },
     {
+      id: 'vibe',
+      name: 'VettCode Vibe',
+      description: 'AI-assisted coding, right inside your workspace.',
+      icon: Sparkles,
+      href: '/dashboard/vibe',
+      external: false,
+      bgGradient: 'from-purple-900/30 to-purple-800/10',
+      borderColor: 'border-purple-500/30 hover:border-purple-500/50',
+      iconBg: 'bg-purple-500/20 group-hover:bg-purple-500/30',
+      iconColor: 'text-purple-400',
+      linkColor: 'text-purple-400 hover:text-purple-300',
+      comingSoon: true,
+    },
+    {
       id: 'hosting',
       name: 'Web Host',
-      description: 'Deploy your applications globally',
+      description: 'Deploy your applications globally.',
       icon: Cloud,
-      color: 'cyan',
-      href: '/dashboard/hosting',
+      href: '#ship',
+      external: false,
       bgGradient: 'from-cyan-900/30 to-cyan-800/10',
       borderColor: 'border-cyan-500/30 hover:border-cyan-500/50',
       iconBg: 'bg-cyan-500/20 group-hover:bg-cyan-500/30',
@@ -66,7 +68,7 @@ export default function EcosystemQuickAccess() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-900">VettCode Ecosystem</h2>
+        <h2 className="text-2xl font-bold text-gray-900">ATAI Ecosystem</h2>
         <Link
           href="/docs"
           className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
@@ -78,19 +80,11 @@ export default function EcosystemQuickAccess() {
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         {products.map((product) => {
           const Icon = product.icon
-          
-          return (
-            <Link
-              key={product.id}
-              href={product.comingSoon ? '#' : product.href}
-              className={`
-                group relative bg-gradient-to-br ${product.bgGradient} 
-                border ${product.borderColor} rounded-xl p-6 
-                transition-all duration-200
-                ${product.comingSoon ? 'cursor-not-allowed opacity-75' : 'hover:shadow-lg'}
-              `}
-            >
-              {product.comingSoon && (
+          const isDisabled = product.comingSoon
+
+          const cardContent = (
+            <>
+              {isDisabled && (
                 <div className="absolute top-3 right-3">
                   <span className="text-xs px-2 py-1 bg-gray-900/50 text-gray-300 rounded-full border border-gray-700">
                     Coming Soon
@@ -110,19 +104,54 @@ export default function EcosystemQuickAccess() {
                 {product.description}
               </p>
 
-              {!product.comingSoon && (
+              {!isDisabled && (
                 <div className={`font-semibold text-sm ${product.linkColor} flex items-center gap-1`}>
                   Open <ArrowRight className="w-3 h-3" />
                 </div>
               )}
+            </>
+          )
+
+          const className = `
+            group relative bg-gradient-to-br ${product.bgGradient}
+            border ${product.borderColor} rounded-xl p-6
+            transition-all duration-200
+            ${isDisabled ? 'cursor-not-allowed opacity-75' : 'hover:shadow-lg'}
+          `
+
+          if (isDisabled) {
+            return (
+              <div key={product.id} className={className}>
+                {cardContent}
+              </div>
+            )
+          }
+
+          if (product.external) {
+            return (
+              <a
+                key={product.id}
+                href={product.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={className}
+              >
+                {cardContent}
+              </a>
+            )
+          }
+
+          return (
+            <Link key={product.id} href={product.href} className={className}>
+              {cardContent}
             </Link>
           )
         })}
       </div>
 
-      <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-green-50 border border-purple-200 rounded-lg">
+      <div className="mt-4 p-4 bg-gradient-to-r from-violet-50 to-blue-50 border border-violet-200 rounded-lg">
         <p className="text-sm text-gray-700">
-          <strong>One ecosystem.</strong> Create with Vibe, code with Vibe CLI, secure with VettCode CLI, and deploy with Web Host.
+          <strong>One ecosystem.</strong> Build with MirrorSite AI, secure with VettCode CLI, and ship with Web Host.
         </p>
       </div>
     </div>

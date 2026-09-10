@@ -1,6 +1,8 @@
 'use client'
 
-import { ArrowRight, FolderPlus, Shield, Rocket } from 'lucide-react'
+import { ArrowRight, Shield, Rocket } from 'lucide-react'
+
+const MIRRORSITE_NEW_URL = 'https://mirrorsite.atai.ink/new'
 
 interface NextActionCardProps {
   hasProjects: boolean
@@ -8,20 +10,34 @@ interface NextActionCardProps {
   hasDeployments?: boolean
 }
 
-export default function NextActionCard({ 
+export default function NextActionCard({
   hasProjects,
   hasScannedProjects = false,
   hasDeployments = false
 }: NextActionCardProps) {
-  const getActionConfig = () => {
+  type ActionColor = 'violet' | 'blue' | 'orange'
+
+  interface ActionConfig {
+    icon: React.ElementType
+    title: string
+    description: string
+    action: string
+    color: ActionColor
+    href?: string
+    onClick?: () => void
+    external?: boolean
+  }
+
+  const getActionConfig = (): ActionConfig | null => {
     if (!hasProjects) {
       return {
-        icon: FolderPlus,
-        title: 'Create your first project',
-        description: 'Start with an idea and turn it into something real.',
-        action: 'Create Project',
-        onClick: () => alert('Project creation coming soon!'),
-        color: 'purple'
+        icon: ArrowRight,
+        title: 'Build your first project',
+        description: 'Turn an idea or existing website into a full application with MirrorSite AI.',
+        action: 'Start building',
+        color: 'violet',
+        href: MIRRORSITE_NEW_URL,
+        external: true,
       }
     }
 
@@ -31,8 +47,8 @@ export default function NextActionCard({
         title: 'Secure your project',
         description: 'Run a VettCode scan to understand what needs attention.',
         action: 'Run Security Scan',
-        onClick: () => alert('Security scanning integration coming soon!'),
-        color: 'blue'
+        color: 'blue',
+        href: '/docs',
       }
     }
 
@@ -42,8 +58,8 @@ export default function NextActionCard({
         title: 'Ship your project',
         description: 'Your project is ready to move toward deployment.',
         action: 'Deploy',
+        color: 'orange',
         onClick: () => alert('Deployment integration coming soon!'),
-        color: 'orange'
       }
     }
 
@@ -52,34 +68,34 @@ export default function NextActionCard({
 
   const actionConfig = getActionConfig()
 
-  if (!actionConfig) {
-    return null
-  }
+  if (!actionConfig) return null
 
   const Icon = actionConfig.icon
 
-  const colorClasses = {
-    purple: {
-      bg: 'bg-purple-600/20',
-      border: 'border-purple-500/30',
-      text: 'text-purple-400',
-      button: 'from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+  const colorClasses: Record<ActionColor, { bg: string; border: string; text: string; button: string }> = {
+    violet: {
+      bg: 'bg-violet-600/20',
+      border: 'border-violet-500/30',
+      text: 'text-violet-400',
+      button: 'from-violet-600 to-violet-700 hover:from-violet-700 hover:to-violet-800',
     },
     blue: {
       bg: 'bg-blue-600/20',
       border: 'border-blue-500/30',
       text: 'text-blue-400',
-      button: 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800'
+      button: 'from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800',
     },
     orange: {
       bg: 'bg-orange-600/20',
       border: 'border-orange-500/30',
       text: 'text-orange-400',
-      button: 'from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800'
-    }
+      button: 'from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800',
+    },
   }
 
-  const colors = colorClasses[actionConfig.color as keyof typeof colorClasses]
+  const colors = colorClasses[actionConfig.color]
+
+  const buttonClass = `flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${colors.button} rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg`
 
   return (
     <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-xl p-6 md:p-8">
@@ -101,13 +117,27 @@ export default function NextActionCard({
           </div>
         </div>
 
-        <button
-          onClick={actionConfig.onClick}
-          className={`flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${colors.button} rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg`}
-        >
-          <span>{actionConfig.action}</span>
-          <ArrowRight className="w-5 h-5" />
-        </button>
+        {actionConfig.href && actionConfig.external ? (
+          <a
+            href={actionConfig.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonClass}
+          >
+            <span>{actionConfig.action}</span>
+            <ArrowRight className="w-5 h-5" />
+          </a>
+        ) : actionConfig.href ? (
+          <a href={actionConfig.href} className={buttonClass}>
+            <span>{actionConfig.action}</span>
+            <ArrowRight className="w-5 h-5" />
+          </a>
+        ) : (
+          <button onClick={actionConfig.onClick} className={buttonClass}>
+            <span>{actionConfig.action}</span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   )

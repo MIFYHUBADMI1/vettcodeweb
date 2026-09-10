@@ -1,12 +1,14 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
+import { getMirrorSiteProjects } from '@/lib/mirrorsite'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import DashboardWelcome from '@/components/dashboard/DashboardWelcome'
 import EmptyWorkspace from '@/components/dashboard/EmptyWorkspace'
 import NextActionCard from '@/components/dashboard/NextActionCard'
 import DashboardContent from '@/components/dashboard/DashboardContent'
 import EcosystemQuickAccess from '@/components/dashboard/EcosystemQuickAccess'
+import MirrorSiteProjectsCard from '@/components/dashboard/MirrorSiteProjectsCard'
 
 export const metadata = {
   title: 'Dashboard - VettCode by ATAI',
@@ -20,9 +22,11 @@ export default async function DashboardPage() {
     redirect('/signin')
   }
 
-  // TODO: Fetch real project data when backend is ready
-  const projects = []
-  const hasProjects = projects.length > 0
+  // Fetch MirrorSite AI projects for this user (server-side, cached 60s).
+  // Falls back to null if the integration isn't configured or the request fails.
+  const mirrorSiteData = await getMirrorSiteProjects(session.user.email!)
+
+  const hasProjects = (mirrorSiteData?.projects.length ?? 0) > 0
 
   return (
     <DashboardLayout>
@@ -33,25 +37,19 @@ export default async function DashboardPage() {
         {/* Ecosystem Quick Access - Always visible for easy navigation */}
         <EcosystemQuickAccess />
 
-        {/* Empty State or Dashboard Content */}
-        {!hasProjects ? (
-          <EmptyWorkspace />
-        ) : (
-          <div className="space-y-6">
-            {/* TODO: Recent Projects Section */}
-            <div className="text-gray-400">
-              <p>Your projects will appear here</p>
-            </div>
-          </div>
+        {/* MirrorSite AI Projects — shown whenever the integration is live */}
+        {mirrorSiteData !== null && (
+          <MirrorSiteProjectsCard data={mirrorSiteData} />
         )}
+
+        {/* Empty State or placeholder when no Mirror projects exist yet */}
+        {!hasProjects && <EmptyWorkspace />}
 
         {/* VettCode Ecosystem Dashboard - Shows scans, AI usage, and actions */}
         <DashboardContent userId={session.user.id} />
 
         {/* Next Action */}
-        <NextActionCard 
-          hasProjects={hasProjects}
-        />
+        <NextActionCard hasProjects={hasProjects} />
       </div>
     </DashboardLayout>
   )
