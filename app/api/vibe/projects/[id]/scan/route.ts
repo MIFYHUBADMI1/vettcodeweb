@@ -10,7 +10,6 @@ import { VibeProjectModel } from '@/lib/models/VibeProject';
 import { ScanModel } from '@/lib/models/Scan';
 import { NextResponse } from 'next/server';
 
-export const maxDuration = 300; // 5 minutes (for Vercel Pro)
 export const dynamic = 'force-dynamic';
 
 const SCAN_SERVICE_URL = process.env.VETTCODE_SCAN_SERVICE_URL || '';
@@ -22,21 +21,21 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Verify project access
     const project = await VibeProjectModel.findById(params.id, session.user.email);
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
-    
+
     // Check if scanning service is configured
     if (!SCAN_SERVICE_URL || !SCAN_SERVICE_API_KEY) {
       return NextResponse.json(
-        { 
+        {
           error: 'Security scanning is coming soon! Deploy the scanning service first.',
           message: 'To enable scanning, deploy the SCAN-SERVICE and configure VETTCODE_SCAN_SERVICE_URL and VETTCODE_SERVICE_API_KEY environment variables.',
           temporary: true
@@ -44,7 +43,7 @@ export async function POST(
         { status: 503 }
       );
     }
-    
+
     // Check quota for security scans
     const { getUserPlan, canMakeAIRequest } = await import('@/lib/subscription');
     const { getBestModelTierForPlan } = await import('@/lib/ai-router');
@@ -57,7 +56,7 @@ export async function POST(
         { status: 429 }
       );
     }
-    
+
     // Get project files
     const body = await request.json();
     const { files } = body;
@@ -68,9 +67,9 @@ export async function POST(
         { status: 400 }
       );
     }
-    
+
     console.log(`[Scan API] Calling scanning service for project ${params.id}...`);
-    
+
     // Call external scanning service
     const scanResponse = await fetch(`${SCAN_SERVICE_URL}/api/scan`, {
       method: 'POST',
@@ -88,7 +87,7 @@ export async function POST(
     if (!scanResponse.ok) {
       const errorData = await scanResponse.json().catch(() => ({}));
       console.error('[Scan API] Scanning service error:', errorData);
-      
+
       return NextResponse.json(
         {
           error: 'Scanning service failed',
@@ -101,7 +100,7 @@ export async function POST(
 
     const scanResult = await scanResponse.json();
     console.log(`[Scan API] Scan completed: ${scanResult.totalFindings || 0} findings`);
-    
+
     // TODO: Store scan results in database
     // await ScanModel.create({
     //   userId: session.user.email,
@@ -120,14 +119,14 @@ export async function POST(
     });
   } catch (error) {
     console.error('[Scan API] Scan failed:', error);
-    
+
     if (error instanceof Error) {
       return NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
     }
-    
+
     return NextResponse.json(
       { error: 'Failed to run security scan' },
       { status: 500 }
@@ -141,24 +140,24 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Verify project access
     const project = await VibeProjectModel.findById(params.id, session.user.email);
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
-    
+
     // Get latest scan for this user (if project has linked scans, get the latest)
     const latestScan = await ScanModel.getLatest(session.user.email);
-    
+
     if (!latestScan) {
       return NextResponse.json({ scan: null });
     }
-    
+
     // Return scan summary with findings
     return NextResponse.json({
       scan: {

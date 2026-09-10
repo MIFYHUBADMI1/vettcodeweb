@@ -1,12 +1,3 @@
 {
-  "functions": {
-    "app/api/vibe/projects/[id]/scan/route.ts": {
-      "maxDuration": 300,
-      "memory": 3008
-    }
-  },
-  "buildCommand": "npm run build",
-  "env": {
-    "ENABLE_EXPERIMENTAL_COREPACK": "1"
-  }
+  "buildCommand": "npm run build"
 }
