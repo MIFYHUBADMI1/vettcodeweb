@@ -33,7 +33,7 @@ export function useSegmentedPlan(projectId: string) {
     queryKey: ['segmentedPlan', projectId],
     queryFn: async (): Promise<SegmentedPlanResponse> => {
       const response = await fetch(`/api/vibe/projects/${projectId}/plan/segmented`);
-      
+
       // Handle 404 - no plan exists yet
       if (response.status === 404) {
         return {
@@ -50,15 +50,15 @@ export function useSegmentedPlan(projectId: string) {
           },
         };
       }
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch plan');
       }
       return response.json();
     },
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Auto-refresh every 5 seconds if generating
-      return data?.plan?.status === 'generating' ? 5000 : false;
+      return query.state.data?.plan?.status === 'generating' ? 5000 : false;
     },
     staleTime: 2000,
     retry: false, // Don't retry on 404
@@ -265,7 +265,7 @@ export function useResetPlan(projectId: string) {
           completedSections: [],
         },
       });
-      
+
       // Then invalidate to refetch
       queryClient.invalidateQueries({ queryKey: ['segmentedPlan', projectId] });
       queryClient.invalidateQueries({ queryKey: ['activeBuildSession', projectId] });
