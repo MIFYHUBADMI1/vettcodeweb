@@ -24,6 +24,11 @@ function getStatusBadge(status: ProjectStatus) {
       text: 'text-blue-400',
       label: 'Planning',
     },
+    ready: {
+      bg: 'bg-purple-500/20',
+      text: 'text-purple-400',
+      label: 'Ready',
+    },
     active: {
       bg: 'bg-green-500/20',
       text: 'text-green-400',
