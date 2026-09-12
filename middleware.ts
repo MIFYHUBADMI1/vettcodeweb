@@ -17,7 +17,7 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl
-        
+
         // Public routes that don't require auth
         const publicRoutes = [
           '/',
@@ -31,8 +31,6 @@ export default withAuth(
           '/developers',
           '/pricing',
           '/docs',
-          '/vibe',
-          '/vibe-cli',
           '/cli',
           '/hosting',
           '/explore',

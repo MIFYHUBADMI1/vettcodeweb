@@ -66,7 +66,7 @@ export class AIRouter {
     if (templateExplanation) {
       const explanation = this.addConfidenceNote(templateExplanation, finding.confidence)
       this.cache.set(cacheKey, explanation)
-      
+
       return {
         explanation,
         source: 'template',
@@ -77,10 +77,10 @@ export class AIRouter {
     // 3. Try AI (based on plan)
     try {
       const aiResult = await this.routeToAI(finding, options)
-      
+
       // Cache successful AI result
       this.cache.set(cacheKey, aiResult.explanation)
-      
+
       return {
         ...aiResult,
         explanation: this.addConfidenceNote(aiResult.explanation, finding.confidence),
@@ -88,7 +88,7 @@ export class AIRouter {
       }
     } catch (error) {
       console.error('AI routing failed:', error)
-      
+
       // 4. Fallback to generic explanation
       const fallbackExplanation = this.getGenericExplanation(finding)
       return {
@@ -180,26 +180,26 @@ export class AIRouter {
     // Dynamic import for model registry
     const modelRegistry = require('./model-registry')
     const { getModelsForPlan, findBestModel } = modelRegistry
-    
+
     // Get all models allowed for this plan (by tier)
     const allowedModels = getModelsForPlan(plan.allowedModelTiers)
-    
+
     if (allowedModels.length === 0) {
       console.warn('[AI-ROUTER] No models available for plan:', plan.id)
       return []
     }
-    
+
     // Find best model for 'explanation' capability
     // (This is the primary capability for finding explanations)
     const bestModel = findBestModel(allowedModels, 'explanation', plan.priority >= 3)
-    
+
     if (!bestModel) {
       console.warn('[AI-ROUTER] No model found with explanation capability')
       return []
     }
-    
+
     const result: Array<{ provider: AIProvider; model: string; priority: number }> = []
-    
+
     // Add primary model (best for this plan)
     const primaryProvider = this.registry.getProvider(bestModel.provider)
     if (primaryProvider) {
@@ -209,7 +209,7 @@ export class AIRouter {
         priority: 100, // Highest priority
       })
     }
-    
+
     // Add fallback models (other capable models from allowed tiers)
     const fallbackModels = allowedModels
       .filter((m: any) => m.id !== bestModel.id && m.capabilities.includes('explanation'))
@@ -221,7 +221,7 @@ export class AIRouter {
         return aCost - bCost
       })
       .slice(0, 3) // Max 3 fallbacks
-    
+
     fallbackModels.forEach((model: any, index: number) => {
       const provider = this.registry.getProvider(model.provider)
       if (provider) {
@@ -232,10 +232,10 @@ export class AIRouter {
         })
       }
     })
-    
+
     // Sort by priority (highest first)
     result.sort((a, b) => b.priority - a.priority)
-    
+
     return result.map(({ provider, model }) => ({ provider, model }))
   }
 
@@ -376,13 +376,13 @@ export class AIRouter {
   ): Promise<AIRouterResult & { message: string }> {
     const startTime = Date.now()
     const { plan, requestId = 'unknown' } = options
-    
+
     console.log(`[AI-ROUTER][${requestId}] generateChat called for user:`, options.userId)
     console.log(`[AI-ROUTER][${requestId}] Feature:`, options.feature, 'Plan:', plan.id)
 
     // Get available providers
     const availableProviders = this.getAvailableProviders(plan)
-    
+
     console.log(`[AI-ROUTER][${requestId}] Available providers:`, availableProviders.length)
     availableProviders.forEach(({ provider, model }) => {
       console.log(`[AI-ROUTER][${requestId}]   -`, provider.name, '/', model)
@@ -446,7 +446,7 @@ export class AIRouter {
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error)
         console.error(`[AI-ROUTER][${requestId}] Attempt ${attempt} - Provider ${provider.name} chat failed:`, errorMessage)
-        
+
         // Classify error type
         if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('rate limit')) {
           console.log(`[AI-ROUTER][${requestId}] RATE_LIMITED - Moving to next provider`)
@@ -457,7 +457,7 @@ export class AIRouter {
         } else {
           console.log(`[AI-ROUTER][${requestId}] PROVIDER_ERROR - Moving to next provider`)
         }
-        
+
         lastError = error as Error
         // Continue to next provider (no retry on same model)
       }
@@ -514,7 +514,7 @@ export function getBestModelTierForPlan(
 
 /**
  * Simple wrapper function for AI requests
- * Used by Vibe Coder and other services
+ * Used by various services
  */
 export interface SimpleAIRequest {
   userId: string;
@@ -547,7 +547,7 @@ function getRouterInstance(): AIRouter {
 
 export async function routeAIRequest(request: SimpleAIRequest): Promise<SimpleAIResponse> {
   const router = getRouterInstance();
-  
+
   // Get user's plan (for now, use free tier)
   // TODO: Load actual user plan from database
   const plan = {
@@ -556,7 +556,7 @@ export async function routeAIRequest(request: SimpleAIRequest): Promise<SimpleAI
     maxTokensPerRequest: request.maxTokens || 2000,
     priority: 1,
   };
-  
+
   // Create simple conversation format
   const messages = [
     {
@@ -564,7 +564,7 @@ export async function routeAIRequest(request: SimpleAIRequest): Promise<SimpleAI
       content: request.prompt,
     },
   ];
-  
+
   try {
     const result = await router.generateChat(messages, {
       userId: request.userId,
@@ -572,7 +572,7 @@ export async function routeAIRequest(request: SimpleAIRequest): Promise<SimpleAI
       feature: request.feature,
       requestId: `${request.feature}-${Date.now()}`,
     });
-    
+
     return {
       content: result.message,
       provider: result.provider,

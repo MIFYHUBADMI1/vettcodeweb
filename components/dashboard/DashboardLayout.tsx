@@ -5,13 +5,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
 import { useQueryClient } from '@tanstack/react-query'
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
-  Sparkles, 
-  Terminal, 
-  Shield, 
-  Rocket, 
+import {
+  LayoutDashboard,
+  FolderKanban,
+  Sparkles,
+  Terminal,
+  Shield,
+  Rocket,
   Globe,
   CreditCard,
   Settings,
@@ -40,18 +40,14 @@ const navigation: NavItem[] = [
   // WORKSPACE
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
-  
-  // BUILD
-  { label: 'VettCode Vibe', href: '/dashboard/vibe', icon: Sparkles, section: 'BUILD' },
-  { label: 'Vibe CLI', href: '/dashboard/vibe-cli', icon: Terminal, comingSoon: true },
-  
+
   // SECURE
   { label: 'Security Scans', href: '/dashboard/scans', icon: Shield, section: 'SECURE' },
-  
+
   // SHIP
   { label: 'Deployments', href: '/dashboard/deployments', icon: Rocket, section: 'SHIP', comingSoon: true },
   { label: 'Web Host', href: '/dashboard/host', icon: Globe, comingSoon: true },
-  
+
   // ACCOUNT
   { label: 'Profile', href: '/dashboard/profile', icon: Settings, section: 'ACCOUNT' },
   { label: 'Usage & Plans', href: '/dashboard/usage', icon: CreditCard },
@@ -107,7 +103,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     } else {
       document.body.style.overflow = ''
     }
-    
+
     return () => {
       document.body.style.overflow = ''
     }
@@ -150,10 +146,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleSignOut = async () => {
     setUserMenuOpen(false)
-    
+
     // Clear all user-specific cached data before signing out
     queryClient.clear()
-    
+
     await signOut({ callbackUrl: '/' })
   }
 
@@ -184,7 +180,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     if (item.comingSoon) {
       return (
-        <div 
+        <div
           key={item.href}
           className={clsx(
             'flex items-center rounded-lg cursor-not-allowed opacity-50 text-gray-500',
@@ -246,8 +242,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             'flex h-16 shrink-0 items-center border-b border-gray-800 transition-all duration-200',
             sidebarCollapsed ? 'justify-center px-2' : 'px-6'
           )}>
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
               title={sidebarCollapsed ? 'ATAI' : undefined}
             >
@@ -275,16 +271,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 {navigation.slice(0, 2).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
 
-              {/* BUILD Section */}
-              <div className="mb-6">
-                {!sidebarCollapsed && (
-                  <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
-                    Build
-                  </div>
-                )}
-                {navigation.slice(2, 4).map((item) => renderNavItem(item, sidebarCollapsed))}
-              </div>
-
               {/* SECURE Section */}
               <div className="mb-6">
                 {!sidebarCollapsed && (
@@ -292,7 +278,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     Secure
                   </div>
                 )}
-                {navigation.slice(4, 5).map((item) => renderNavItem(item, sidebarCollapsed))}
+                {navigation.slice(2, 3).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
 
               {/* SHIP Section */}
@@ -302,7 +288,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     Ship
                   </div>
                 )}
-                {navigation.slice(5, 7).map((item) => renderNavItem(item, sidebarCollapsed))}
+                {navigation.slice(3, 5).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
 
               {/* ACCOUNT Section */}
@@ -312,7 +298,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     Account
                   </div>
                 )}
-                {navigation.slice(7, 9).map((item) => renderNavItem(item, sidebarCollapsed))}
+                {navigation.slice(5, 7).map((item) => renderNavItem(item, sidebarCollapsed))}
               </div>
             </div>
           </nav>
@@ -396,8 +382,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 border-b border-gray-800">
         <div className="flex items-center justify-between h-16 px-4">
-          <Link 
-            href="/dashboard" 
+          <Link
+            href="/dashboard"
             className="text-xl font-bold bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent"
           >
             ATAI
@@ -419,14 +405,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {mobileMenuOpen && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={closeMobileMenu}
             aria-hidden="true"
           />
-          
+
           {/* Mobile Drawer */}
-          <div 
+          <div
             id="mobile-menu"
             ref={mobileMenuRef}
             className="lg:hidden fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-gray-900 shadow-2xl transform transition-transform duration-300 ease-in-out"
@@ -464,54 +450,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       return (
                         <div key={item.href}>
                           {item.comingSoon ? (
-                            <div 
-                              className="flex items-center justify-between px-3 py-3 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
-                              title={`${item.label} coming soon`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                                <span className="truncate">{item.label}</span>
-                              </div>
-                              <span className="text-[10px] text-gray-600 font-medium px-1.5 py-0.5 bg-gray-800 rounded uppercase tracking-wider">
-                                Soon
-                              </span>
-                            </div>
-                          ) : (
-                            <Link
-                              href={item.href}
-                              className={clsx(
-                                'flex items-center gap-3 px-3 py-3 text-sm rounded-lg transition-all group relative',
-                                isActive
-                                  ? 'bg-purple-600/10 text-purple-400 font-medium border-l-2 border-purple-500 pl-[10px]'
-                                  : 'text-gray-300 hover:bg-gray-800 hover:text-white border-l-2 border-transparent pl-[10px]'
-                              )}
-                              aria-current={isActive ? 'page' : undefined}
-                            >
-                              <Icon className={clsx(
-                                'w-5 h-5 flex-shrink-0',
-                                isActive && 'text-purple-400'
-                              )} aria-hidden="true" />
-                              <span className="truncate">{item.label}</span>
-                            </Link>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-
-                  {/* BUILD Section */}
-                  <div className="mb-6">
-                    <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
-                      Build
-                    </div>
-                    {navigation.slice(2, 4).map((item) => {
-                      const isActive = isRouteActive(item.href)
-                      const Icon = item.icon
-
-                      return (
-                        <div key={item.href}>
-                          {item.comingSoon ? (
-                            <div 
+                            <div
                               className="flex items-center justify-between px-3 py-3 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
                               title={`${item.label} coming soon`}
                             >
@@ -551,14 +490,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
                       Secure
                     </div>
-                    {navigation.slice(4, 5).map((item) => {
+                    {navigation.slice(2, 3).map((item) => {
                       const isActive = isRouteActive(item.href)
                       const Icon = item.icon
 
                       return (
                         <div key={item.href}>
                           {item.comingSoon ? (
-                            <div 
+                            <div
                               className="flex items-center justify-between px-3 py-3 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
                               title={`${item.label} coming soon`}
                             >
@@ -598,14 +537,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
                       Ship
                     </div>
-                    {navigation.slice(5, 7).map((item) => {
+                    {navigation.slice(3, 5).map((item) => {
                       const isActive = isRouteActive(item.href)
                       const Icon = item.icon
 
                       return (
                         <div key={item.href}>
                           {item.comingSoon ? (
-                            <div 
+                            <div
                               className="flex items-center justify-between px-3 py-3 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
                               title={`${item.label} coming soon`}
                             >
@@ -645,14 +584,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div className="px-3 pb-2 text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em]">
                       Account
                     </div>
-                    {navigation.slice(7, 9).map((item) => {
+                    {navigation.slice(5, 7).map((item) => {
                       const isActive = isRouteActive(item.href)
                       const Icon = item.icon
 
                       return (
                         <div key={item.href}>
                           {item.comingSoon ? (
-                            <div 
+                            <div
                               className="flex items-center justify-between px-3 py-3 text-sm rounded-lg cursor-not-allowed opacity-50 text-gray-500"
                               title={`${item.label} coming soon`}
                             >

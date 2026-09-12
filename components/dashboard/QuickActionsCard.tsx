@@ -11,16 +11,6 @@ import { Code, Shield, Rocket, BookOpen, Terminal } from 'lucide-react'
 export default function QuickActionsCard() {
   const actions = [
     {
-      icon: Code,
-      label: 'Vibe Coder',
-      description: 'Build with AI',
-      color: 'from-purple-600 to-purple-700',
-      hoverColor: 'hover:from-purple-700 hover:to-purple-800',
-      href: '/dashboard/vibe',
-      onClick: null,
-      comingSoon: false,
-    },
-    {
       icon: Terminal,
       label: 'Security Scan',
       description: 'Check your code',
@@ -59,7 +49,7 @@ export default function QuickActionsCard() {
         {actions.map((action) => {
           const Icon = action.icon
           const baseClasses = `relative p-4 bg-gradient-to-br ${action.color} ${action.hoverColor} rounded-xl transition-all transform hover:scale-105 shadow-lg text-left group block`
-          
+
           // Render as Link if href exists
           if (action.href) {
             return (
@@ -75,7 +65,7 @@ export default function QuickActionsCard() {
                     </span>
                   </div>
                 )}
-                
+
                 <Icon className="w-8 h-8 mb-3 opacity-90" />
                 <div>
                   <div className="font-semibold mb-0.5">{action.label}</div>
@@ -84,7 +74,7 @@ export default function QuickActionsCard() {
               </Link>
             )
           }
-          
+
           // Render as button if onClick exists
           return (
             <button
@@ -99,7 +89,7 @@ export default function QuickActionsCard() {
                   </span>
                 </div>
               )}
-              
+
               <Icon className="w-8 h-8 mb-3 opacity-90" />
               <div>
                 <div className="font-semibold mb-0.5">{action.label}</div>
