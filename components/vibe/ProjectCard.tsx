@@ -31,6 +31,7 @@ const projectTypeColors = {
 
 const statusColors = {
   planning: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  ready: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
   active: 'bg-green-500/20 text-green-400 border-green-500/30',
   archived: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
 };
@@ -39,12 +40,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const Icon = projectTypeIcons[project.type];
   const gradient = projectTypeColors[project.type];
   const statusClass = statusColors[project.status];
-  
+
   const lastUpdated = new Date(project.updatedAt);
   const now = new Date();
   const diffMs = now.getTime() - lastUpdated.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  
+
   let timeAgo = '';
   if (diffDays === 0) {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
@@ -64,14 +65,14 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     >
       {/* Header with gradient */}
       <div className={`h-2 bg-gradient-to-r ${gradient}`} />
-      
+
       <div className="p-6">
         {/* Icon and Status */}
         <div className="flex items-start justify-between mb-4">
           <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center group-hover:scale-110 transition-transform`}>
             <Icon className="w-6 h-6 text-white" />
           </div>
-          
+
           <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusClass}`}>
             {project.status}
           </span>
@@ -112,7 +113,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             <Calendar className="w-3.5 h-3.5" />
             {timeAgo}
           </div>
-          
+
           <div className="text-xs text-purple-400 font-medium group-hover:text-purple-300">
             Open →
           </div>
