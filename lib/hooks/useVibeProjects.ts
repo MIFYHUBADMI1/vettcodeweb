@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { queryKeys } from '../query-config';
-import type { VibeProject, ProjectType, ProjectPlan } from '../models/VibeProject';
+import type { VibeProject, ProjectType, ProjectStatus, ProjectPlan } from '../models/VibeProject';
 import type { VibeProjectFile, FileTreeNode } from '../models/VibeProjectFile';
 import type { VibeMessage } from '../models/VibeConversation';
 
@@ -66,7 +66,7 @@ async function fetchVibeChatHistory(projectId: string): Promise<{ messages: Vibe
 export function useVibeProjects() {
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useQuery({
     queryKey: queryKeys.vibeProjects(userId),
     queryFn: fetchVibeProjects,
@@ -80,7 +80,7 @@ export function useVibeProjects() {
 export function useVibeProject(projectId: string) {
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useQuery({
     queryKey: queryKeys.vibeProject(userId, projectId),
     queryFn: () => fetchVibeProject(projectId),
@@ -94,7 +94,7 @@ export function useVibeProject(projectId: string) {
 export function useVibeProjectFiles(projectId: string) {
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useQuery({
     queryKey: queryKeys.vibeProjectFiles(userId, projectId),
     queryFn: () => fetchVibeProjectFiles(projectId),
@@ -108,7 +108,7 @@ export function useVibeProjectFiles(projectId: string) {
 export function useVibeFileTree(projectId: string) {
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useQuery({
     queryKey: queryKeys.vibeFileTree(userId, projectId),
     queryFn: () => fetchVibeFileTree(projectId),
@@ -122,7 +122,7 @@ export function useVibeFileTree(projectId: string) {
 export function useVibeChat(projectId: string) {
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useQuery({
     queryKey: queryKeys.vibeChat(userId, projectId),
     queryFn: () => fetchVibeChatHistory(projectId),
@@ -141,7 +141,7 @@ export function useCreateProject() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (data: {
       name: string;
@@ -154,12 +154,12 @@ export function useCreateProject() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to create project');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -176,12 +176,13 @@ export function useUpdateProject(projectId: string) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (data: {
       name?: string;
       description?: string;
       framework?: string;
+      status?: ProjectStatus;
       plan?: ProjectPlan;
     }) => {
       const response = await fetch(`/api/vibe/projects/${projectId}`, {
@@ -189,12 +190,12 @@ export function useUpdateProject(projectId: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to update project');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -211,18 +212,18 @@ export function useArchiveProject() {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (projectId: string) => {
       const response = await fetch(`/api/vibe/projects/${projectId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to archive project');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -238,7 +239,7 @@ export function useSendVibeMessage(projectId: string) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (message: string) => {
       const response = await fetch(`/api/vibe/projects/${projectId}/chat`, {
@@ -246,12 +247,12 @@ export function useSendVibeMessage(projectId: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to send message');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -270,7 +271,7 @@ export function useCreateFile(projectId: string) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (data: { path: string; content: string }) => {
       const response = await fetch(`/api/vibe/projects/${projectId}/files`, {
@@ -278,12 +279,12 @@ export function useCreateFile(projectId: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to create file');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -300,7 +301,7 @@ export function useUpdateFile(projectId: string) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (data: { path: string; content: string }) => {
       const response = await fetch(`/api/vibe/projects/${projectId}/files/${encodeURIComponent(data.path)}`, {
@@ -308,12 +309,12 @@ export function useUpdateFile(projectId: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: data.content }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to update file');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -329,18 +330,18 @@ export function useDeleteFile(projectId: string) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (path: string) => {
       const response = await fetch(`/api/vibe/projects/${projectId}/files/${encodeURIComponent(path)}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to delete file');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -357,7 +358,7 @@ export function useGeneratePlan(projectId: string) {
   const queryClient = useQueryClient();
   const { data: session } = useSession();
   const userId = session?.user?.email;
-  
+
   return useMutation({
     mutationFn: async (data: { description: string; type: ProjectType }) => {
       const response = await fetch(`/api/vibe/projects/${projectId}/plan`, {
@@ -365,12 +366,12 @@ export function useGeneratePlan(projectId: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || 'Failed to generate plan');
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
