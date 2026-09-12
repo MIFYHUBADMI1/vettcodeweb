@@ -29,7 +29,7 @@ export default function FileExplorer({ projectId, tree, selectedFile, onSelectFi
     setExpandedFolders(newExpanded);
   };
 
-  const renderNode = (node: FileTreeNode, depth: number = 0) => {
+  const renderNode = (node: FileTreeNode, depth: number = 0): React.ReactNode => {
     if (node.name === 'root') {
       // Render root's children directly
       return node.children?.map((child) => renderNode(child, depth));
