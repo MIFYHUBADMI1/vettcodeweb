@@ -70,10 +70,10 @@ export function useBuildSession(sessionId: string | null) {
     queryFn: () => fetchBuildSession(sessionId!),
     enabled: !!session?.user && !!sessionId,
     staleTime: 0,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // If build is active, poll every 2 seconds
-      const isActive = data?.session?.status &&
-        ['queued', 'planning', 'building', 'reviewing', 'testing'].includes(data.session.status);
+      const isActive = query.state.data?.session?.status &&
+        ['queued', 'planning', 'building', 'reviewing', 'testing'].includes(query.state.data.session.status);
       return isActive ? 2000 : false;
     },
   });
@@ -90,10 +90,10 @@ export function useBuildActivities(sessionId: string | null, limit?: number) {
     queryKey: queryKeys.buildActivities(userId, sessionId || '', limit),
     queryFn: () => fetchBuildActivities(sessionId!, limit),
     enabled: !!session?.user && !!sessionId,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // If build is active, poll every 1 second for activities
       // Otherwise don't poll
-      return data?.activities?.[0] ? 1000 : false;
+      return query.state.data?.activities?.[0] ? 1000 : false;
     },
   });
 }
@@ -124,10 +124,10 @@ export function useActiveBuildSession(projectId: string) {
     queryFn: () => fetchActiveBuildSession(projectId),
     enabled: !!session?.user && !!projectId,
     staleTime: 0,
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // If build is active, poll every 2 seconds
-      const isActive = data?.session?.status &&
-        ['queued', 'planning', 'building', 'reviewing', 'testing'].includes(data.session.status);
+      const isActive = query.state.data?.session?.status &&
+        ['queued', 'planning', 'building', 'reviewing', 'testing'].includes(query.state.data.session.status);
       return isActive ? 2000 : false;
     },
   });
