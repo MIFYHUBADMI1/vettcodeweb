@@ -17,8 +17,6 @@ import { toLegacyFindings } from '@/lib/types'
 // Mark this route as dynamic since it uses authentication
 export const dynamic = 'force-dynamic'
 
-export const dynamic = 'force-dynamic'
-
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system'
   content: string
