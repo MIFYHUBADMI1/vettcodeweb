@@ -34,7 +34,14 @@ export async function getMirrorSiteProjects(
   const apiUrl = process.env.MIRRORSITE_API_URL
   const internalKey = process.env.ATAI_INTERNAL_KEY
 
+  console.log('[mirrorsite] Checking environment variables...')
+  console.log('[mirrorsite] MIRRORSITE_API_URL:', apiUrl ? `${apiUrl.substring(0, 20)}...` : 'NOT SET')
+  console.log('[mirrorsite] ATAI_INTERNAL_KEY:', internalKey ? `${internalKey.substring(0, 10)}...` : 'NOT SET')
+
   if (!apiUrl || !internalKey) {
+    console.error('[mirrorsite] Configuration missing!')
+    console.error('[mirrorsite] MIRRORSITE_API_URL:', !!apiUrl)
+    console.error('[mirrorsite] ATAI_INTERNAL_KEY:', !!internalKey)
     // Integration not configured — fail silently so the dashboard still loads.
     return null
   }
@@ -42,6 +49,8 @@ export async function getMirrorSiteProjects(
   try {
     const url = new URL('/api/internal/projects', apiUrl)
     url.searchParams.set('email', email)
+
+    console.log('[mirrorsite] Fetching projects from:', url.toString().replace(email, 'xxx@xxx.com'))
 
     const res = await fetch(url.toString(), {
       method: 'GET',
@@ -54,12 +63,17 @@ export async function getMirrorSiteProjects(
       next: { revalidate: 60 },
     })
 
+    console.log('[mirrorsite] Response status:', res.status)
+
     if (!res.ok) {
-      console.error('[mirrorsite] internal API error:', res.status, await res.text().catch(() => ''))
+      const errorText = await res.text().catch(() => '')
+      console.error('[mirrorsite] internal API error:', res.status, errorText)
       return null
     }
 
     const json = await res.json()
+    console.log('[mirrorsite] Response data:', json.ok ? 'OK' : 'NOT OK', 'projects:', json.data?.projects?.length ?? 0)
+
     if (!json.ok || !json.data) return null
 
     return json.data as MirrorSiteProjectsResult
