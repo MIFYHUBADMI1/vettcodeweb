@@ -55,12 +55,10 @@ export async function getMirrorSiteProjects(
     const res = await fetch(url.toString(), {
       method: 'GET',
       headers: {
-        'x-internal-key': internalKey,
+        'X-Internal-Key': internalKey,
         'Content-Type': 'application/json',
       },
-      // Next.js: revalidate every 60 s so the dashboard stays reasonably fresh
-      // without hammering MirrorSite on every page load.
-      next: { revalidate: 60 },
+      cache: 'no-store', // Don't cache internal API calls
     })
 
     console.log('[mirrorsite] Response status:', res.status)
