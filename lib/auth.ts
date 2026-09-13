@@ -14,7 +14,7 @@ import { sendVerificationEmail, sendWelcomeEmail } from '@/lib/email'
 
 export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise) as any,
-  
+
   providers: [
     // Google OAuth
     GoogleProvider({
@@ -27,8 +27,9 @@ export const authOptions: NextAuthOptions = {
           response_type: 'code',
         },
       },
+      allowDangerousEmailAccountLinking: true, // Allow linking Google to existing email/password accounts
     }),
-    
+
     // Email/Password (Credentials)
     CredentialsProvider({
       name: 'credentials',
@@ -43,7 +44,7 @@ export const authOptions: NextAuthOptions = {
 
         // Find user
         const user = await UserModel.findByEmail(credentials.email)
-        
+
         if (!user) {
           throw new Error('No user found with this email')
         }
@@ -55,7 +56,7 @@ export const authOptions: NextAuthOptions = {
 
         // Verify password
         const isValid = await bcrypt.compare(credentials.password, user.password)
-        
+
         if (!isValid) {
           throw new Error('Invalid password')
         }
@@ -91,9 +92,9 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       // If signing in with Google
       if (account?.provider === 'google') {
-        // Find or create user
+        // Find existing user by email
         let dbUser = await UserModel.findByEmail(user.email!)
-        
+
         if (!dbUser) {
           // Create new user with Google OAuth
           dbUser = await UserModel.create({
@@ -104,15 +105,31 @@ export const authOptions: NextAuthOptions = {
             emailVerified: new Date(), // Google emails are pre-verified
             provider: 'google',
           })
-          
+
           // Send welcome email
           await sendWelcomeEmail(user.email!, user.name || undefined)
         } else {
+          // User exists - update provider to allow linking
+          // This allows users who signed up with credentials to also use Google
+          const collection = await UserModel.getCollection()
+          await collection.updateOne(
+            { email: user.email! },
+            {
+              $set: {
+                provider: 'google', // Update to Google provider
+                emailVerified: new Date(), // Mark as verified
+                image: user.image || dbUser.image, // Update image if available
+                name: user.name || dbUser.name, // Update name if available
+                updatedAt: new Date(),
+              },
+            }
+          )
+
           // Update last login
           await UserModel.updateLastLogin(dbUser._id!.toString())
         }
       }
-      
+
       return true
     },
 
@@ -120,14 +137,14 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         // Initial sign in
         const dbUser = await UserModel.findByEmail(user.email!)
-        
+
         if (dbUser) {
           token.userId = dbUser._id!.toString()
           token.plan = dbUser.plan
           token.emailVerified = !!dbUser.emailVerified
         }
       }
-      
+
       return token
     },
 
@@ -137,7 +154,7 @@ export const authOptions: NextAuthOptions = {
         session.user.plan = token.plan as string
         session.user.emailVerified = token.emailVerified as boolean
       }
-      
+
       return session
     },
   },
