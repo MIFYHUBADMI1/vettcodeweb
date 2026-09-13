@@ -1,0 +1,58 @@
+{
+  "name": "ATAI - AI Infrastructure & Developer Technology",
+  "short_name": "ATAI",
+  "description": "ATAI builds AI-powered applications, developer technologies, security tools, and intelligent infrastructure for modern software.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "productivity",
+    "developer tools",
+    "utilities"
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Access your ATAI dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Sign In",
+      "short_name": "Sign In",
+      "description": "Sign in to your account",
+      "url": "/signin",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

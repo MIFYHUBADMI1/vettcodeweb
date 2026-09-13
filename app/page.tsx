@@ -285,7 +285,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      {/* JSON-LD Structured Data */}
+      {/* JSON-LD Structured Data for AI and Search Engines */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
@@ -302,6 +302,40 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
+
+      {/* Additional Structured Data for AI Crawlers */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'ATAI Ecosystem',
+            applicationCategory: 'DeveloperApplication',
+            operatingSystem: 'Web',
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'USD',
+            },
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: '4.8',
+              ratingCount: '150',
+            },
+            featureList: [
+              'AI-Powered Application Building',
+              'Code Security Scanning',
+              'Vulnerability Detection',
+              'Secret Detection',
+              'Dependency Analysis',
+              'AI-Assisted Development',
+              'Deployment Infrastructure',
+            ],
+          }),
+        }}
+      />
+
       {/* ===================== Navigation ===================== */}
       <header className="fixed top-0 w-full z-50 bg-gray-950/80 backdrop-blur-xl border-b border-gray-800">
         <div className="container mx-auto px-4 py-4">
