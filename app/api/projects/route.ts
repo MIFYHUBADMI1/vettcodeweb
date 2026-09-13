@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { ProjectModel } from '@/lib/models/Project'
 
+// Mark this route as dynamic since it uses authentication
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/projects
  * Get all projects for the current user

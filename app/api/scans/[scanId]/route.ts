@@ -12,6 +12,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { ScanModel } from '@/lib/models/Scan'
 
+// Mark this route as dynamic since it uses authentication
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { scanId: string } }

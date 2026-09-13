@@ -14,6 +14,9 @@ import { calculateSecurityScore } from '@/lib/security-score'
 import type { ScanContext } from '@/lib/ai-chat-utils'
 import { toLegacyFindings } from '@/lib/types'
 
+// Mark this route as dynamic since it uses authentication
+export const dynamic = 'force-dynamic'
+
 export const dynamic = 'force-dynamic'
 
 interface ChatMessage {
@@ -35,7 +38,7 @@ export async function POST(
   // FIXED: Add correlation ID for request tracking
   const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(7)}`
   console.log(`[CHAT-API][${requestId}] POST request received for scanId:`, params.scanId)
-  
+
   try {
     // 1. Authentication
     const session = await getServerSession(authOptions)
@@ -52,7 +55,7 @@ export async function POST(
 
     // 2. Get scan and verify ownership
     const scan = await ScanModel.findById(params.scanId)
-    
+
     if (!scan) {
       console.log(`[CHAT-API][${requestId}] Scan not found:`, params.scanId)
       return NextResponse.json(
@@ -74,7 +77,7 @@ export async function POST(
     // 3. Parse request
     const body: ChatRequest = await request.json()
     const { message, conversationHistory = [], requestOverview = false } = body
-    
+
     console.log(`[CHAT-API][${requestId}] Request type:`, requestOverview ? 'overview' : 'chat')
     console.log(`[CHAT-API][${requestId}] User message:`, message?.substring(0, 100))
     console.log(`[CHAT-API][${requestId}] Conversation history length:`, conversationHistory.length)
@@ -172,7 +175,7 @@ export async function POST(
 
   } catch (error) {
     console.error(`[CHAT-API][${requestId}] Error:`, error)
-    
+
     return NextResponse.json(
       {
         error: 'Failed to generate response',

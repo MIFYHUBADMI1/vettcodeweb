@@ -11,6 +11,9 @@ import { authOptions } from '@/lib/auth'
 import { CLICredentialModel } from '@/lib/models/CLICredential'
 import { ObjectId } from 'mongodb'
 
+// Mark this route as dynamic since it uses authentication
+export const dynamic = 'force-dynamic'
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { deviceId: string } }

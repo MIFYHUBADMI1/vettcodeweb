@@ -12,6 +12,9 @@ import { authOptions } from '@/lib/auth'
 import { AuthorizationSessionModel } from '@/lib/models/AuthorizationSession'
 import { CLICredentialModel } from '@/lib/models/CLICredential'
 
+// Mark this route as dynamic since it uses authentication
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // Verify user is authenticated

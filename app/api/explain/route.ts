@@ -12,6 +12,9 @@ import { generateAIExplanation } from '@/lib/ai'
 import { redactSecrets, containsSecrets } from '@/lib/secret-redaction'
 import type { Finding, AIExplanationRequest, AIExplanationResponse } from '@/lib/types'
 
+// Mark this route as dynamic since it uses authentication
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // 1. Authentication check
@@ -43,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Generate explanation using AI Router
     const startTime = Date.now()
-    
+
     const result = await generateAIExplanation(
       safeFinding,
       session.user.email // Use email as userId
@@ -75,7 +78,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('AI Explanation error:', error)
-    
+
     return NextResponse.json(
       {
         error: 'Failed to generate explanation',

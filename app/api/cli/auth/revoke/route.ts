@@ -12,6 +12,9 @@ import { authOptions } from '@/lib/auth'
 import { CLICredentialModel } from '@/lib/models/CLICredential'
 import { authenticateCLIRequest } from '@/lib/cli-auth'
 
+// Mark this route as dynamic since it uses authentication
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // Try CLI authentication first
