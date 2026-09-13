@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
 import { getMirrorSiteProjects } from '@/lib/mirrorsite'
+import { getMirrorSiteCredits } from '@/lib/mirrorsite-credits'
 import DashboardLayout from '@/components/dashboard/DashboardLayout'
 import DashboardWelcome from '@/components/dashboard/DashboardWelcome'
 import EmptyWorkspace from '@/components/dashboard/EmptyWorkspace'
@@ -9,6 +10,7 @@ import NextActionCard from '@/components/dashboard/NextActionCard'
 import DashboardContent from '@/components/dashboard/DashboardContent'
 import EcosystemQuickAccess from '@/components/dashboard/EcosystemQuickAccess'
 import MirrorSiteProjectsCard from '@/components/dashboard/MirrorSiteProjectsCard'
+import MirrorSiteCreditsCard from '@/components/dashboard/MirrorSiteCreditsCard'
 
 export const metadata = {
   title: 'Dashboard - VettCode by ATAI',
@@ -25,6 +27,7 @@ export default async function DashboardPage() {
   // Fetch MirrorSite AI projects for this user (server-side, cached 60s).
   // Falls back to null if the integration isn't configured or the request fails.
   const mirrorSiteData = await getMirrorSiteProjects(session.user.email!)
+  const mirrorSiteCredits = await getMirrorSiteCredits(session.user.email!)
 
   const hasProjects = (mirrorSiteData?.projects.length ?? 0) > 0
 
@@ -36,6 +39,9 @@ export default async function DashboardPage() {
 
         {/* Ecosystem Quick Access - Always visible for easy navigation */}
         <EcosystemQuickAccess />
+
+        {/* MirrorSite Credits Balance */}
+        {mirrorSiteCredits !== null && <MirrorSiteCreditsCard credits={mirrorSiteCredits} />}
 
         {/* MirrorSite AI Projects — shown whenever the integration is live */}
         {mirrorSiteData !== null && (
