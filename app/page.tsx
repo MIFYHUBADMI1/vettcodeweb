@@ -180,7 +180,7 @@ export default function Home() {
         '@type': 'Question',
         name: 'What is MirrorSite AI?',
         acceptedAnswer: {
-        '@type': 'Answer',
+          '@type': 'Answer',
           text: 'MirrorSite AI is ATAI\'s AI-powered application-building platform. It transforms ideas and prompts into functional applications and full-stack MVPs. MirrorSite AI is an independent product within the ATAI ecosystem.',
         },
       },
@@ -399,46 +399,67 @@ export default function Home() {
         <div className="absolute top-1/2 -right-32 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="container mx-auto relative">
-          <div className="max-w-4xl mx-auto text-center">
+          <div className="max-w-5xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-900/30 border border-indigo-500/30 rounded-full mb-8">
-              <Layers className="w-4 h-4 text-sky-400" />
-              <span className="text-sm text-sky-300">Advanced Technologies and AI Enterprises</span>
+              <Sparkles className="w-4 h-4 text-sky-400" />
+              <span className="text-sm text-sky-300">Ship secure applications faster</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-              Building the AI infrastructure behind the{' '}
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-[1.1]">
+              Build AI applications.
+              <br />
               <span className="bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                next generation of applications.
+                Ship with confidence.
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto">
-              ATAI builds AI-powered applications, developer technologies, security tools, and
-              intelligent infrastructure designed to make modern software faster, safer, and more
-              accessible.
+            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+              Modern development is slow, insecure, and complex. We solve that.
+              Build faster with AI, catch vulnerabilities before production, and ship confidently.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-              <Link
-                href="#about"
-                className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 rounded-lg font-semibold text-lg flex items-center gap-2 transition"
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+              <a
+                href={MIRRORSITE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 rounded-lg font-semibold text-lg flex items-center gap-2 transition shadow-lg shadow-indigo-500/25"
               >
-                Explore ATAI <ArrowRight className="w-5 h-5" />
-              </Link>
+                Start Building <ArrowRight className="w-5 h-5" />
+              </a>
               <Link
-                href="#products"
-                className="px-8 py-4 bg-gray-800 hover:bg-gray-700 rounded-lg font-semibold text-lg transition"
+                href="/signin"
+                className="px-8 py-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg font-semibold text-lg transition"
               >
-                Explore Our Products
+                Get Started Free
               </Link>
             </div>
 
-            <div className="flex items-center justify-center gap-3 text-sm text-gray-500">
-              <span className="font-semibold text-violet-400">BUILD</span>
-              <span className="w-8 h-px bg-gray-700" />
-              <span className="font-semibold text-sky-400">SECURE</span>
-              <span className="w-8 h-px bg-gray-700" />
-              <span className="font-semibold text-cyan-400">SHIP</span>
+            {/* Problem statements */}
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-indigo-500/30 transition">
+                <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4">
+                  <Code className="w-5 h-5 text-indigo-400" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Development is too slow</h3>
+                <p className="text-sm text-gray-400">Turn ideas into working applications in minutes, not months. AI handles the heavy lifting.</p>
+              </div>
+
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-sky-500/30 transition">
+                <div className="w-10 h-10 bg-sky-500/10 rounded-lg flex items-center justify-center mb-4">
+                  <ShieldCheck className="w-5 h-5 text-sky-400" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Security slows you down</h3>
+                <p className="text-sm text-gray-400">Find vulnerabilities and exposed secrets before they become breaches. Security that moves at dev speed.</p>
+              </div>
+
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/30 transition">
+                <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center mb-4">
+                  <Rocket className="w-5 h-5 text-cyan-400" />
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Shipping is complex</h3>
+                <p className="text-sm text-gray-400">Deploy confidently knowing your code is vetted, tested, and production-ready.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -1094,4 +1115,4 @@ export default function Home() {
       </footer>
     </main>
   )
-}
+}
