@@ -61,10 +61,66 @@ const PRODUCTS: ProductLink[] = [
   },
 ]
 
+// Typing animation hook
+function useTypingAnimation(phrases: string[], typingSpeed = 100, deletingSpeed = 50, pauseDuration = 2000) {
+  const [displayText, setDisplayText] = useState('')
+  const [phraseIndex, setPhraseIndex] = useState(0)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
+
+  useEffect(() => {
+    const currentPhrase = phrases[phraseIndex]
+
+    if (isPaused) {
+      const pauseTimeout = setTimeout(() => {
+        setIsPaused(false)
+        setIsDeleting(true)
+      }, pauseDuration)
+      return () => clearTimeout(pauseTimeout)
+    }
+
+    if (!isDeleting && displayText === currentPhrase) {
+      setIsPaused(true)
+      return
+    }
+
+    if (isDeleting && displayText === '') {
+      setIsDeleting(false)
+      setPhraseIndex((prev) => (prev + 1) % phrases.length)
+      return
+    }
+
+    const timeout = setTimeout(
+      () => {
+        setDisplayText((prev) => {
+          if (isDeleting) {
+            return currentPhrase.substring(0, prev.length - 1)
+          } else {
+            return currentPhrase.substring(0, prev.length + 1)
+          }
+        })
+      },
+      isDeleting ? deletingSpeed : typingSpeed
+    )
+
+    return () => clearTimeout(timeout)
+  }, [displayText, isDeleting, isPaused, phraseIndex, phrases, typingSpeed, deletingSpeed, pauseDuration])
+
+  return displayText
+}
+
 export default function Home() {
   const [productsOpen, setProductsOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const productsRef = useRef<HTMLDivElement>(null)
+
+  // Typing animation for hero text
+  const typingText = useTypingAnimation([
+    'Build AI applications.',
+    'Ship with confidence.',
+    'Deploy faster.',
+    'Code securely.',
+  ], 80, 40, 2500)
 
   // Close the Explore Products dropdown when clicking outside
   useEffect(() => {
@@ -393,69 +449,73 @@ export default function Home() {
 
       {/* ===================== Hero ===================== */}
       <section id="hero" aria-label="ATAI Hero" className="pt-32 md:pt-40 pb-24 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 via-transparent to-transparent pointer-events-none" />
+        {/* Animated background elements */}
+        <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/20 via-transparent to-transparent pointer-events-none animate-pulse" style={{ animationDuration: '4s' }} />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
-        <div className="absolute top-1/3 -left-32 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 -right-32 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 -left-32 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none animate-blob" />
+        <div className="absolute top-1/2 -right-32 w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none animate-blob animation-delay-2000" />
+        <div className="absolute bottom-1/4 left-1/2 w-96 h-96 bg-violet-600/10 rounded-full blur-3xl pointer-events-none animate-blob animation-delay-4000" />
 
         <div className="container mx-auto relative">
           <div className="max-w-5xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-900/30 border border-indigo-500/30 rounded-full mb-8">
-              <Sparkles className="w-4 h-4 text-sky-400" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-900/30 border border-indigo-500/30 rounded-full mb-8 animate-fade-in-down">
+              <Sparkles className="w-4 h-4 text-sky-400 animate-pulse" />
               <span className="text-sm text-sky-300">Ship secure applications faster</span>
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 leading-[1.1]">
-              Build AI applications.
-              <br />
-              <span className="bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent">
+              <span className="block animate-fade-in-up">
+                {typingText}
+                <span className="inline-block w-1 h-16 md:h-24 bg-gradient-to-r from-sky-400 to-indigo-400 ml-2 animate-blink" />
+              </span>
+              <span className="block bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400 bg-clip-text text-transparent animate-fade-in-up animation-delay-500">
                 Ship with confidence.
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up animation-delay-1000">
               Modern development is slow, insecure, and complex. We solve that.
               Build faster with AI, catch vulnerabilities before production, and ship confidently.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in-up animation-delay-1500">
               <a
                 href={MIRRORSITE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-8 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 rounded-lg font-semibold text-lg flex items-center gap-2 transition shadow-lg shadow-indigo-500/25"
+                className="group px-8 py-4 bg-gradient-to-r from-indigo-600 via-sky-600 to-cyan-600 hover:from-indigo-700 hover:via-sky-700 hover:to-cyan-700 rounded-lg font-semibold text-lg flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 transform"
               >
-                Start Building <ArrowRight className="w-5 h-5" />
+                Start Building <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
               <Link
                 href="/signin"
-                className="px-8 py-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg font-semibold text-lg transition"
+                className="group px-8 py-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 rounded-lg font-semibold text-lg transition-all hover:scale-105 transform"
               >
                 Get Started Free
               </Link>
             </div>
 
-            {/* Problem statements */}
+            {/* Problem statements - with staggered animations */}
             <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
-              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-indigo-500/30 transition">
-                <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4">
-                  <Code className="w-5 h-5 text-indigo-400" />
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-indigo-500/30 transition-all hover:-translate-y-1 transform animate-fade-in-up animation-delay-2000">
+                <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Code className="w-5 h-5 text-indigo-400 animate-pulse" style={{ animationDuration: '3s' }} />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Development is too slow</h3>
                 <p className="text-sm text-gray-400">Turn ideas into working applications in minutes, not months. AI handles the heavy lifting.</p>
               </div>
 
-              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-sky-500/30 transition">
-                <div className="w-10 h-10 bg-sky-500/10 rounded-lg flex items-center justify-center mb-4">
-                  <ShieldCheck className="w-5 h-5 text-sky-400" />
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-sky-500/30 transition-all hover:-translate-y-1 transform animate-fade-in-up animation-delay-2300">
+                <div className="w-10 h-10 bg-sky-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <ShieldCheck className="w-5 h-5 text-sky-400 animate-pulse" style={{ animationDuration: '3.5s' }} />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Security slows you down</h3>
                 <p className="text-sm text-gray-400">Find vulnerabilities and exposed secrets before they become breaches. Security that moves at dev speed.</p>
               </div>
 
-              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/30 transition">
-                <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center mb-4">
-                  <Rocket className="w-5 h-5 text-cyan-400" />
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 hover:border-cyan-500/30 transition-all hover:-translate-y-1 transform animate-fade-in-up animation-delay-2600">
+                <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Rocket className="w-5 h-5 text-cyan-400 animate-pulse" style={{ animationDuration: '4s' }} />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Shipping is complex</h3>
                 <p className="text-sm text-gray-400">Deploy confidently knowing your code is vetted, tested, and production-ready.</p>

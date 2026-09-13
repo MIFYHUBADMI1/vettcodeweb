@@ -103,3 +103,111 @@ html {
     backdrop-filter: blur(24px);
   }
 }
+
+/* ================================
+   HERO ANIMATIONS
+   ================================ */
+
+/* Fade in animations with different delays */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(20px, -50px) scale(1.1);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  75% {
+    transform: translate(50px, 50px) scale(1.05);
+  }
+}
+
+/* Animation classes */
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.animate-blob {
+  animation: blob 20s ease-in-out infinite;
+}
+
+/* Animation delays */
+.animation-delay-500 {
+  animation-delay: 0.5s;
+}
+
+.animation-delay-1000 {
+  animation-delay: 1s;
+}
+
+.animation-delay-1500 {
+  animation-delay: 1.5s;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-2300 {
+  animation-delay: 2.3s;
+}
+
+.animation-delay-2600 {
+  animation-delay: 2.6s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Smooth transitions for hover states */
+.group:hover .group-hover\:translate-x-1 {
+  transition: transform 0.3s ease;
+}
+
+.group:hover .group-hover\:scale-110 {
+  transition: transform 0.3s ease;
+}
